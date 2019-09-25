@@ -9,7 +9,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 def talker_frame():
     
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture('~/Videos/driver_1.mp4')
 
     pub = rospy.Publisher('frame_chatter', Image)
     bridge = CvBridge()
