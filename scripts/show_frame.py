@@ -11,7 +11,7 @@ bridge = CvBridge()
 def chatter_callback(frame):
     cv_frame = bridge.imgmsg_to_cv2(frame)
     cv2.imshow("Image window", cv_frame)
-    #cv2.waitKey(0)
+    cv2.waitKey(40)
 
     
 def show_frame():

@@ -16,15 +16,17 @@ def talker_frame():
 
     rospy.init_node('talker_img', anonymous=True)
 
-    rate = rospy.Rate(30)
+    rate = rospy.Rate(25)
     i = 0
     while not rospy.is_shutdown():
         ret, frame = video_capture.read()
-        frame_msg = "send FRAME %s" % i
+        frame_msg = "send FRAME %s" % i 
+        i=i+1       
         #rospy.loginfo(frame_msg)
+
         pub.publish(bridge.cv2_to_imgmsg(frame))
+
         rate.sleep()
-        i=i+1
 
 if __name__ == '__main__':
     try:
