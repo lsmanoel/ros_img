@@ -8,10 +8,12 @@ project(ros_img)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  rosccpp
+  roscpp
   rospy
   std_msgs
-  vision_opencv
+  actionlib_msgs
+  cv_bridge
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
@@ -114,6 +116,22 @@ catkin_package(
 ## Build ##
 ###########
 
+find_package(OpenCV)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+add_executable(ControladorDeCamera src/ControladorDeCamera.cpp)
+target_link_libraries(ControladorDeCamera ${catkin_LIBRARIES})
+target_link_libraries(ControladorDeCamera ${OpenCV_LIBRARIES})
+
+add_executable(show_frame src/show_frame.cpp)
+target_link_libraries(show_frame ${catkin_LIBRARIES})
+target_link_libraries(show_frame ${OpenCV_LIBRARIES})
+
+add_executable(talker_frame src/talker_frame.cpp)
+target_link_libraries(talker_frame ${catkin_LIBRARIES})
+target_link_libraries(talker_frame ${OpenCV_LIBRARIES})
+
+#-------------------------------------------------------------------------------------------------------
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
