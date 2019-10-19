@@ -57,11 +57,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  return_data.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -71,10 +70,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -119,17 +118,33 @@ catkin_package(
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(ControladorDeCamera src/ControladorDeCamera.cpp)
-target_link_libraries(ControladorDeCamera ${catkin_LIBRARIES})
-target_link_libraries(ControladorDeCamera ${OpenCV_LIBRARIES})
+add_executable(mono_display_mono8 src/mono_display_mono8.cpp)
+target_link_libraries(mono_display_mono8 ${catkin_LIBRARIES})
+target_link_libraries(mono_display_mono8 ${OpenCV_LIBRARIES})
 
-add_executable(show_frame src/show_frame.cpp)
-target_link_libraries(show_frame ${catkin_LIBRARIES})
-target_link_libraries(show_frame ${OpenCV_LIBRARIES})
+add_executable(mono_display_bgr8 src/mono_display_bgr8.cpp)
+target_link_libraries(mono_display_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(mono_display_bgr8 ${OpenCV_LIBRARIES})
 
-add_executable(talker_frame src/talker_frame.cpp)
-target_link_libraries(talker_frame ${catkin_LIBRARIES})
-target_link_libraries(talker_frame ${OpenCV_LIBRARIES})
+add_executable(mono_vision_mono8 src/mono_vision_mono8.cpp)
+target_link_libraries(mono_vision_mono8 ${catkin_LIBRARIES})
+target_link_libraries(mono_vision_mono8 ${OpenCV_LIBRARIES})
+
+add_executable(mono_vision_bgr8 src/mono_vision_bgr8.cpp)
+target_link_libraries(mono_vision_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(mono_vision_bgr8 ${OpenCV_LIBRARIES})
+
+# add_executable(stereo_vision_mono8 src/stereo_vision_mono8.cpp)
+# target_link_libraries(stereo_vision_mono8 ${catkin_LIBRARIES})
+# target_link_libraries(stereo_vision_mono8 ${OpenCV_LIBRARIES})
+
+add_executable(show_frame_bgr8 src/show_frame_bgr8.cpp)
+target_link_libraries(show_frame_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(show_frame_bgr8 ${OpenCV_LIBRARIES})
+
+add_executable(ip_cam_vision_bgr8 src/ip_cam_vision_bgr8.cpp)
+target_link_libraries(ip_cam_vision_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(ip_cam_vision_bgr8 ${OpenCV_LIBRARIES})
 
 #-------------------------------------------------------------------------------------------------------
 ## Specify additional locations of header files
