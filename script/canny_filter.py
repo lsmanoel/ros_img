@@ -10,45 +10,22 @@ import rospy
 from ros_img.srv import return_data, return_dataResponse
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from image_process import ImageProcess
 
-class CannyFilter(object):
+class CannyFilter(ImageProcess):
     def __init__(self,
-    			 name=None,
-                 input_frame=None):
+                 name=None,
+                 input_frame=None,
+                 fps=30,
+                 delta_t_buffer_size=1000):
 
         if name is None:
-        	self.name='canny_filter'
-        else:
-        	self.name=name
+            name='canny_filter'
 
-        rospy.init_node(self.name, anonymous=True)
-
-        self.rate = rospy.Rate(30)#Hz
-
-        self.bridge = CvBridge()
-        self.input_frame = input_frame
-        self.output_frame = None
-
-        self.delta_t_buffer_size = 1000
-        self._delta_t = []
-        self.delta_t = 0
-
-    # ----------------------------------------------------------------------------------------
-    # rostopics
-    def signals_publisher_init(self, rostopic_name=None):
-        if rostopic_name is None:
-            self.pub_output = rospy.Publisher(self.name+'_output', Image, queue_size=10)
-        else:
-            self.pub_output = rospy.Publisher(rostopic_name, Image, queue_size=10)
-
-    def signals_subscriber_init(self, rostopic_name=None):
-        if rostopic_name is None:
-            rospy.Subscriber(self.name+'_input', Image, self.input_frame_callback)
-        else:
-            rospy.Subscriber(rostopic_name, Image, self.input_frame_callback)
-
-    def input_frame_callback(self, frame):
-        self.input_frame = self.bridge.imgmsg_to_cv2(frame)
+        super(CannyFilter, self).__init__(name=name,
+                                          input_frame=input_frame,
+                                          fps=fps,
+                                          delta_t_buffer_size=delta_t_buffer_size)
 
     # ----------------------------------------------------------------------------------------
     @staticmethod
@@ -77,49 +54,16 @@ class CannyFilter(object):
         return output_frame
 
     # ----------------------------------------------------------------------------------------
-    # property
-    @property
-    def delta_t(self):
-        return self._delta_t[-1]
-
-    @delta_t.setter
-    def delta_t(self, value):
-        if len(self._delta_t) > self.delta_t_buffer_size:
-            self._delta_t.pop(0)
-        self._delta_t.append(value)
-
-    # ----------------------------------------------------------------------------------------
-    # rosservices
-    def delta_t_service_init(self):
-        self._delta_t_service = rospy.Service(self.name + '_delta_t_service', return_data, self.delta_t_service)
-
-    def delta_t_service(self, msg):
-        return return_dataResponse(self._delta_t)
-
-    # ----------------------------------------------------------------------------------------
     # Main Loop        
-    def main_loop(self):
-        # ------------------------------------------
-        while not rospy.is_shutdown():
-            self.rate.sleep()
-            if self.input_frame is not None:
-                t0 = rospy.get_rostime().nsecs
-                # -----------------------------------
-                frame = self.input_frame.copy()
-                frame = cv2.Canny(frame, 100, 200)
-                frame = self.show_array(self.signature_histogram_generation(frame), frame.shape)
+    def main_process(self):
+        frame = self.input_frame.copy()
+        frame = cv2.Canny(frame, 100, 200)
+        frame = self.show_array(self.signature_histogram_generation(frame), frame.shape)
 
-                # -----------------------------------
-                # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                self.output_frame = frame.copy() 
-                self.pub_output.publish(self.bridge.cv2_to_imgmsg(self.output_frame))
-
-                t = rospy.get_rostime().nsecs
-                delta_t = t - t0
-                if delta_t > 0:
-                    self.delta_t = delta_t
-                       
-        print("break")
+        # -----------------------------------
+        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        self.output_frame = frame.copy() 
+        self.pub_output.publish(self.bridge.cv2_to_imgmsg(self.output_frame))
 
 # ======================================================================================================================
 def canny_filter():

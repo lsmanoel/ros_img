@@ -10,28 +10,27 @@ import rospy
 from ros_img.srv import return_data, return_dataResponse
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from image_process import ImageProcess
 
-class RcnnInceptionV2(object):
+class RcnnInceptionV2(ImageProcess):
     def __init__(self,
-                 name='rcnn_inception_v2',
+                 name=None,
                  input_frame=None,
+                 fps=30,
+                 delta_t_buffer_size=1000,
                  rcnn_datapath="/home/lucas/catkin_ws/src/ros_img/script/mask-rcnn-coco",
                  weights="frozen_inference_graph.pb",
                  config="mask_rcnn_inception_v2_coco_2018_01_28.pbtxt",
                  labels="object_detection_classes_coco.txt",
                  colors="colors.txt"):
 
-        self.name=name
-        rospy.init_node(name, anonymous=True)
+        if name is None:
+            name='canny_filter'
 
-        self.rate = rospy.Rate(30)#Hz
-
-        self.bridge = CvBridge()
-        self.input_frame = input_frame
-
-        self.delta_t_buffer_size = 1000
-        self._delta_t = []
-        self.delta_t = 0
+        super(RcnnInceptionV2, self).__init__(name=name,
+                                          input_frame=input_frame,
+                                          fps=fps,
+                                          delta_t_buffer_size=delta_t_buffer_size)
 
         # derive the paths to the Mask R-CNN weights and model configuration
         self.rcnn_datapath = rcnn_datapath
@@ -53,182 +52,121 @@ class RcnnInceptionV2(object):
         self.colors = np.array(COLORS, dtype="uint8")
 
     # ----------------------------------------------------------------------------------------
-    # rostopics
-    def signals_publisher_init(self, rostopic_name=None):
-        if rostopic_name is None:
-            self.pub_output = rospy.Publisher(self.name+'_output', Image, queue_size=10)
-        else:
-            self.pub_output = rospy.Publisher(rostopic_name, Image, queue_size=10)
-
-    def signals_subscriber_init(self, rostopic_name=None):
-        if rostopic_name is None:
-            rospy.Subscriber(self.name+'_input', Image, self.input_frame_callback)
-        else:
-            rospy.Subscriber(rostopic_name, Image, self.input_frame_callback)
-
-    def input_frame_callback(self, frame):
-        self.input_frame = self.bridge.imgmsg_to_cv2(frame)
-
-    # ----------------------------------------------------------------------------------------
-    # property
-    @property
-    def delta_t(self):
-        return self._delta_t[-1]
-
-    @delta_t.setter
-    def delta_t(self, value):
-        if len(self._delta_t) > self.delta_t_buffer_size:
-            self._delta_t.pop(0)
-        self._delta_t.append(value)
-
-    # ----------------------------------------------------------------------------------------
-    # rosservices
-    def delta_t_service_init(self):
-        self._delta_t_service = rospy.Service(self.name + '_delta_t_service', return_data, self.delta_t_service)
-
-    def delta_t_service(self, msg):
-        return return_dataResponse(self._delta_t)
-
-    # ----------------------------------------------------------------------------------------
-    # Main Loop
-    # def main_loop(self):
-    #     # ------------------------------------------
-    #     while not rospy.is_shutdown():
-    #         self.rate.sleep()
-    #         if self.input_frame is not None:
-    #             frame = self.input_frame.copy()
-    #             # ------------------------------------------
-    #             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    #             self.pub_output.publish(self.bridge.cv2_to_imgmsg(frame))
-    def main_loop(self):
-        # ------------------------------------------
-        while not rospy.is_shutdown():
-            self.rate.sleep()
-            if self.input_frame is not None:
-                t0 = rospy.get_rostime().nsecs
-                # -----------------------------------
-                frame = self.input_frame.copy()
-                (H, W) = frame.shape[:2]
-                
-                blob = cv2.dnn.blobFromImage(frame, swapRB=True, crop=False)
-                self.nn.setInput(blob)
-
-                start = rospy.get_rostime().nsecs
-                (boxes, masks) = self.nn.forward(["detection_out_final", "detection_masks"])
-                
-                end = rospy.get_rostime().nsecs
-                dt_rcnn = end - start
-                if dt_rcnn <= 0:
-                    dt_rcnn = end - start + 2**32
-
-                print("[INFO] Mask R-CNN took {:.6f} seconds".format(dt_rcnn/1e9))
-
-                #-------------------------------------------------------------------------------
-                confidenceThreshold = 0.5
-                binarizationThreshold = 0.3
-                visualize = 0
-
-                frameCopy = frame.copy()
-
-                # loop over the number of detected objects
-                for i in range(0, boxes.shape[2]):
-                    # extract the class ID of the detection along with the confidence
-                    # (i.e., probability) associated with the prediction
-                    classID = int(boxes[0, 0, i, 1])
-                    confidence = boxes[0, 0, i, 2]
-
-                    #---------------------------------------------------------------------------
-                    # filter out weak predictions by ensuring the detected probability
-                    # is greater than the minimum probability
-                    if confidence > confidenceThreshold:
-                        # clone our original image so we can draw on it
-
-
-                        # scale the bounding box coordinates back relative to the
-                        # size of the image and then compute the width and the height
-                        # of the bounding box
-                        box = boxes[0, 0, i, 3:7] * np.array([W, H, W, H])
-                        (startX, startY, endX, endY) = box.astype("int")
-                        boxW = endX - startX
-                        boxH = endY - startY
-
-                        # extract the pixel-wise segmentation for the object, resize
-                        # the mask such that it's the same dimensions of the bounding
-                        # box, and then finally threshold to create a *binary* mask
-                        mask = masks[i, classID]
-                        mask = cv2.resize(mask, (boxW, boxH), interpolation=cv2.INTER_NEAREST)
-                        mask = (mask > binarizationThreshold)
-
-                        # extract the ROI of the image
-                        frameRoi = frameCopy[startY:endY, startX:endX]
-
-                        #-----------------------------------------------------------------------
-                        # check to see if are going to visualize how to extract the
-                        # masked region itself
-                        if visualize > 0:
-                            # convert the mask from a boolean to an integer mask with
-                            # to values: 0 or 255, then apply the mask
-                            visMask = (mask * 255).astype("uint8")
-                            instance = cv2.bitwise_and(frameRoi, frameRoi, mask=visMask)
-
-                            # show the extracted ROI, the mask, along with the
-                            # segmented instance 
-                            frameRoi = cv2.cvtColor(frameRoi, cv2.COLOR_BGR2RGB)
-                            # visMask = cv2.cvtColor(visMask, cv2.COLOR_BGR2RGB)
-                            instance = cv2.cvtColor(instance, cv2.COLOR_BGR2RGB)
-                            
-                            print("ROI:")
-                            plt.imshow(frameRoi)
-                            plt.show()
-                            
-                            print("Mask:")
-                            plt.imshow(visMask)
-                            plt.show()
-                            
-                            print("Segmented:")
-                            plt.imshow(instance)
-                            plt.show()
-                            
-
-                        #-----------------------------------------------------------------------
-                        # now, extract *only* the masked region of the ROI by passing
-                        # in the boolean mask array as our slice condition
-                        frameRoi = frameRoi[mask]
-
-                        # randomly select a color that will be used to visualize this
-                        # particular instance segmentation then create a transparent
-                        # overlay by blending the randomly selected color with the ROI
-                        color = random.choice(self.colors)
-                        blended = ((0.4 * color) + (0.6 * frameRoi)).astype("uint8")
-
-                        # store the blended ROI in the original image
-                        frameCopy[startY:endY, startX:endX][mask] = blended
-
-                        # draw the bounding box of the instance on the image
-                        color = [int(c) for c in color]
-                        cv2.rectangle(frameCopy, (startX, startY), (endX, endY), color, 2)
-
-                        # draw the predicted label and associated probability of the
-                        # instance segmentation on the image
-                        text = "{}: {:.4f}".format(self.labels[classID], confidence)
-                        cv2.putText(frameCopy, text, (startX, startY - 5),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-
-                # -----------------------------------
-                # frameCopy = cv2.cvtColor(frameCopy, cv2.COLOR_BGR2RGB)
-                t = rospy.get_rostime().nsecs
-                self.pub_output.publish(self.bridge.cv2_to_imgmsg(frameCopy))
-
-                t = rospy.get_rostime().nsecs
-                delta_t = t - t0
-                if delta_t > 0:
-                    self.delta_t = delta_t
-                else:
-                    delta_t = t - t0 + 2**32
-                    self.delta_t = delta_t
-
+    # Main Loop 
+    def main_process(self):
+        t0 = rospy.get_rostime().nsecs
+        # -----------------------------------
+        frame = self.input_frame.copy()
+        (H, W) = frame.shape[:2]
         
-        print("break")
+        blob = cv2.dnn.blobFromImage(frame, swapRB=True, crop=False)
+        self.nn.setInput(blob)
+
+        start = rospy.get_rostime().nsecs
+        (boxes, masks) = self.nn.forward(["detection_out_final", "detection_masks"])
+        
+        end = rospy.get_rostime().nsecs
+        dt_rcnn = end - start
+        if dt_rcnn <= 0:
+            dt_rcnn = end - start + 2**32
+
+        print("[INFO] Mask R-CNN took {:.6f} seconds".format(dt_rcnn/1e9))
+
+        #-------------------------------------------------------------------------------
+        confidenceThreshold = 0.5
+        binarizationThreshold = 0.3
+        visualize = 0
+
+        frameCopy = frame.copy()
+
+        # loop over the number of detected objects
+        for i in range(0, boxes.shape[2]):
+            # extract the class ID of the detection along with the confidence
+            # (i.e., probability) associated with the prediction
+            classID = int(boxes[0, 0, i, 1])
+            confidence = boxes[0, 0, i, 2]
+
+            #---------------------------------------------------------------------------
+            # filter out weak predictions by ensuring the detected probability
+            # is greater than the minimum probability
+            if confidence > confidenceThreshold:
+                # clone our original image so we can draw on it
+
+
+                # scale the bounding box coordinates back relative to the
+                # size of the image and then compute the width and the height
+                # of the bounding box
+                box = boxes[0, 0, i, 3:7] * np.array([W, H, W, H])
+                (startX, startY, endX, endY) = box.astype("int")
+                boxW = endX - startX
+                boxH = endY - startY
+
+                # extract the pixel-wise segmentation for the object, resize
+                # the mask such that it's the same dimensions of the bounding
+                # box, and then finally threshold to create a *binary* mask
+                mask = masks[i, classID]
+                mask = cv2.resize(mask, (boxW, boxH), interpolation=cv2.INTER_NEAREST)
+                mask = (mask > binarizationThreshold)
+
+                # extract the ROI of the image
+                frameRoi = frameCopy[startY:endY, startX:endX]
+
+                #-----------------------------------------------------------------------
+                # check to see if are going to visualize how to extract the
+                # masked region itself
+                if visualize > 0:
+                    # convert the mask from a boolean to an integer mask with
+                    # to values: 0 or 255, then apply the mask
+                    visMask = (mask * 255).astype("uint8")
+                    instance = cv2.bitwise_and(frameRoi, frameRoi, mask=visMask)
+
+                    # show the extracted ROI, the mask, along with the
+                    # segmented instance 
+                    frameRoi = cv2.cvtColor(frameRoi, cv2.COLOR_BGR2RGB)
+                    # visMask = cv2.cvtColor(visMask, cv2.COLOR_BGR2RGB)
+                    instance = cv2.cvtColor(instance, cv2.COLOR_BGR2RGB)
+                    
+                    print("ROI:")
+                    plt.imshow(frameRoi)
+                    plt.show()
+                    
+                    print("Mask:")
+                    plt.imshow(visMask)
+                    plt.show()
+                    
+                    print("Segmented:")
+                    plt.imshow(instance)
+                    plt.show()
+                    
+
+                #-----------------------------------------------------------------------
+                # now, extract *only* the masked region of the ROI by passing
+                # in the boolean mask array as our slice condition
+                frameRoi = frameRoi[mask]
+
+                # randomly select a color that will be used to visualize this
+                # particular instance segmentation then create a transparent
+                # overlay by blending the randomly selected color with the ROI
+                color = random.choice(self.colors)
+                blended = ((0.4 * color) + (0.6 * frameRoi)).astype("uint8")
+
+                # store the blended ROI in the original image
+                frameCopy[startY:endY, startX:endX][mask] = blended
+
+                # draw the bounding box of the instance on the image
+                color = [int(c) for c in color]
+                cv2.rectangle(frameCopy, (startX, startY), (endX, endY), color, 2)
+
+                # draw the predicted label and associated probability of the
+                # instance segmentation on the image
+                text = "{}: {:.4f}".format(self.labels[classID], confidence)
+                cv2.putText(frameCopy, text, (startX, startY - 5),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+        # -----------------------------------
+        # frameCopy = cv2.cvtColor(frameCopy, cv2.COLOR_BGR2RGB)
+        self.pub_output.publish(self.bridge.cv2_to_imgmsg(frameCopy))
+
 
 # ======================================================================================================================
 def rcnn_inception_v2():

@@ -11,45 +11,39 @@ from std_msgs.msg import Bool
 from geometry_msgs.msg import Point32
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from image_process import ImageProcess
 
-class SvmIfscDetector(object):
+class SvmIfscDetector(ImageProcess):
     def __init__(self,
+                 name=None,
+                 input_frame=None,
+                 fps=30,
+                 delta_t_buffer_size=1000,
                  dataset_folder_path ='/home/lucas/catkin_ws/src/ros_img/script/ifsc_logo_dataset',
                  training_xml='ifsc_logo.xml',
                  detector_svm='detector.svm',
-                 landmarks_dat='landmarks.dat',
-                 input_frame=None):
+                 landmarks_dat='landmarks.dat'):
 
-        rospy.init_node('svm_ifsc_detector', anonymous=True)
+        if name is None:
+            name='svm_ifsc_detector'
 
-        self.rate = rospy.Rate(30)#Hz
-
-        self.bridge = CvBridge()
-        self.input_frame = input_frame
+        super(SvmIfscDetector, self).__init__(name=name,
+                                          input_frame=input_frame,
+                                          fps=fps,
+                                          delta_t_buffer_size=delta_t_buffer_size)
 
         self.dataset_folder_path = dataset_folder_path
         self.training_xml = os.path.join(dataset_folder_path, training_xml)
         self.detector_svm = os.path.join(dataset_folder_path, detector_svm)
         self.landmarks_dat = os.path.join(dataset_folder_path, landmarks_dat)
 
+        self.detector = dlib.fhog_object_detector(self.detector_svm)
+        self.landmarks_detector = dlib.shape_predictor(self.landmarks_dat)
+        self.loc = Point32()
+
         print(cv2.__version__)
 
-
-    def signals_publisher_init(self, rostopic_name=None):
-        if rostopic_name is None:
-            self.pub_output = rospy.Publisher(self.name+'_output', Image, queue_size=10)
-        else:
-            self.pub_output = rospy.Publisher(rostopic_name, Image, queue_size=10)
-
-    def signals_subscriber_init(self, rostopic_name=None):
-        if rostopic_name is None:
-            rospy.Subscriber(self.name+'_input', Image, self.input_frame_callback)
-        else:
-            rospy.Subscriber(rostopic_name, Image, self.input_frame_callback)
-
-    def input_frame_callback(self, frame):
-        self.input_frame = self.bridge.imgmsg_to_cv2(frame)
-
+    # ----------------------------------------------------------------------------------------
     def trainer(self,
                 add_left_right_image_flips=False,
                 C=5,
@@ -92,47 +86,39 @@ class SvmIfscDetector(object):
                                    dlib.shape_predictor_training_options())
         print("ok!")
 
+    # ----------------------------------------------------------------------------------------
     @staticmethod
     def printLandmark(image, landmarks, color):    
         for p in landmarks.parts():
             cv2.circle(image, (p.x, p.y), 20, color, 2)
         return image
 
-    def main_loop(self):
-        print("main_loop ...")
-        detector = dlib.fhog_object_detector(self.detector_svm)
-        landmarks_detector = dlib.shape_predictor(self.landmarks_dat)
-        loc = Point32()
-        # ------------------------------------------
-        while not rospy.is_shutdown():
-            self.rate.sleep() 
-            if self.input_frame is not None:
-                frame = self.input_frame.copy()
-                # -----------------------------------
-                [boxes, confidences, detector_idxs]  = dlib.fhog_object_detector.run(detector, 
-                                                                                     frame, 
-                                                                                     upsample_num_times=0, 
-                                                                                     adjust_threshold=0.1) 
-                for i, box in enumerate(boxes):
-                    e, t, d, b = (int(box.left()), 
-                                  int(box.top()), 
-                                  int(box.right()), 
-                                  int(box.bottom()))
-                    loc.x = (e+d)/2
-                    loc.y = (t+b)/2
-                    loc.z = i
-                    self.pub_output_loc.publish(loc)
+    # ----------------------------------------------------------------------------------------
+    # Main Loop   
+    def main_process(self):
+        frame = self.input_frame.copy()
+        # -----------------------------------
+        [boxes, confidences, detector_idxs]  = dlib.fhog_object_detector.run(self.detector, 
+                                                                             frame, 
+                                                                             upsample_num_times=0, 
+                                                                             adjust_threshold=0.1) 
+        for i, box in enumerate(boxes):
+            e, t, d, b = (int(box.left()), 
+                          int(box.top()), 
+                          int(box.right()), 
+                          int(box.bottom()))
+            self.loc.x = (e+d)/2
+            self.loc.y = (t+b)/2
+            self.loc.z = i
+            self.pub_output_loc.publish(self.loc)
 
-                    cv2.rectangle(frame, (e, t), (d, b), (0, 0, 255), 2)
+            cv2.rectangle(frame, (e, t), (d, b), (0, 0, 255), 2)
 
-                    landmark = landmarks_detector(frame, box)
-                    self.printLandmark(frame, landmark, (255, 0, 0))
+            landmark = self.landmarks_detector(frame, box)
+            self.printLandmark(frame, landmark, (255, 0, 0))
 
-                # -----------------------------------
-                self.pub_output_frame.publish(self.bridge.cv2_to_imgmsg(frame))
-
-        print("end loop!!!")
-
+        # -----------------------------------
+        self.pub_output.publish(self.bridge.cv2_to_imgmsg(frame))
 
 # ======================================================================================================================
 def svm_ifsc_detector():
