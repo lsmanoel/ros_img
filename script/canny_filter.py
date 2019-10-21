@@ -15,16 +15,14 @@ from image_process import ImageProcess
 class CannyFilter(ImageProcess):
     def __init__(self,
                  name=None,
-                 input_frame=None,
-                 fps=30,
+                 rate=30,
                  delta_t_buffer_size=1000):
 
         if name is None:
             name='canny_filter'
 
         super(CannyFilter, self).__init__(name=name,
-                                          input_frame=input_frame,
-                                          fps=fps,
+                                          rate=rate,
                                           delta_t_buffer_size=delta_t_buffer_size)
 
     # ----------------------------------------------------------------------------------------
@@ -57,32 +55,44 @@ class CannyFilter(ImageProcess):
     # Main Loop        
     def main_process(self):
         frame = self.input_frame.copy()
+        # **************************
         frame = cv2.Canny(frame, 100, 200)
         frame = self.show_array(self.signature_histogram_generation(frame), frame.shape)
 
         # -----------------------------------
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # **************************
         self.output_frame = frame.copy() 
-        self.pub_output.publish(self.bridge.cv2_to_imgmsg(self.output_frame))
+
 
 # ======================================================================================================================
 def canny_filter():
     canny_filter = CannyFilter()
-    if len(sys.argv)>=3:      
-        if sys.argv[1] == '-input_frame':
-            canny_filter.signals_subscriber_init(rostopic_name=sys.argv[2])
-        elif sys.argv[1] == '-output_frame':
-            canny_filter.signals_publisher_init(rostopic_name=sys.argv[2])
-    else:
-        canny_filter.signals_subscriber_init()
 
-    if len(sys.argv)>=5:      
-        if sys.argv[3] == '-input_frame':
-            canny_filter.signals_subscriber_init(rostopic_name=sys.argv[4])
-        elif sys.argv[3] == '-output_frame':
-            canny_filter.signals_publisher_init(rostopic_name=sys.argv[4])
+    if len(sys.argv)==3:
+        if sys.argv[1] == '-input':
+            canny_filter.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            canny_filter.output_frame_publisher_init()
+        elif sys.argv[1] == '-output':
+            canny_filter.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            canny_filter.input_frame_subscriber_init()
+        else:
+            canny_filter.input_frame_subscriber_init()
+            canny_filter.output_frame_publisher_init()
+    elif len(sys.argv)==5:      
+        if sys.argv[1] == '-input':
+            canny_filter.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            canny_filter.output_frame_publisher_init(rostopic_name=sys.argv[4])
+        elif sys.argv[1] == '-output':
+            canny_filter.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            canny_filter.input_frame_subscriber_init(rostopic_name=sys.argv[4])
+        else:
+            canny_filter.input_frame_subscriber_init()
+            canny_filter.output_frame_publisher_init()
+
     else:
-        canny_filter.signals_publisher_init()
+        canny_filter.input_frame_subscriber_init()
+        canny_filter.output_frame_publisher_init()
     
     canny_filter.delta_t_service_init()
     canny_filter.main_loop()

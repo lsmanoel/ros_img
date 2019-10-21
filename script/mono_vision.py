@@ -7,6 +7,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
+# ======================================================================================================================
 def mono_vision():
     
     #video_capture = cv2.VideoCapture('/home/lucas/Videos/driver_1.mp4')

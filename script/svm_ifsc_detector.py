@@ -16,8 +16,7 @@ from image_process import ImageProcess
 class SvmIfscDetector(ImageProcess):
     def __init__(self,
                  name=None,
-                 input_frame=None,
-                 fps=30,
+                 rate=30,
                  delta_t_buffer_size=1000,
                  dataset_folder_path ='/home/lucas/catkin_ws/src/ros_img/script/ifsc_logo_dataset',
                  training_xml='ifsc_logo.xml',
@@ -28,9 +27,8 @@ class SvmIfscDetector(ImageProcess):
             name='svm_ifsc_detector'
 
         super(SvmIfscDetector, self).__init__(name=name,
-                                          input_frame=input_frame,
-                                          fps=fps,
-                                          delta_t_buffer_size=delta_t_buffer_size)
+                                              rate=rate,
+                                              delta_t_buffer_size=delta_t_buffer_size)
 
         self.dataset_folder_path = dataset_folder_path
         self.training_xml = os.path.join(dataset_folder_path, training_xml)
@@ -97,7 +95,7 @@ class SvmIfscDetector(ImageProcess):
     # Main Loop   
     def main_process(self):
         frame = self.input_frame.copy()
-        # -----------------------------------
+        # **************************
         [boxes, confidences, detector_idxs]  = dlib.fhog_object_detector.run(self.detector, 
                                                                              frame, 
                                                                              upsample_num_times=0, 
@@ -110,15 +108,15 @@ class SvmIfscDetector(ImageProcess):
             self.loc.x = (e+d)/2
             self.loc.y = (t+b)/2
             self.loc.z = i
-            self.pub_output_loc.publish(self.loc)
+            # self.pub_output_loc.publish(self.loc)
 
             cv2.rectangle(frame, (e, t), (d, b), (0, 0, 255), 2)
 
             landmark = self.landmarks_detector(frame, box)
             self.printLandmark(frame, landmark, (255, 0, 0))
 
-        # -----------------------------------
-        self.pub_output.publish(self.bridge.cv2_to_imgmsg(frame))
+        # **************************
+        self.output_frame = frame.copy() 
 
 # ======================================================================================================================
 def svm_ifsc_detector():
@@ -127,25 +125,33 @@ def svm_ifsc_detector():
     if len(sys.argv)==2:
         if sys.argv[1] == 'trainer_mode':
             svm_ifsc_detector.trainer()
-    else:      
-        if len(sys.argv)>=3:      
-            if sys.argv[1] == '-input_frame':
-                svm_ifsc_detector.signals_subscriber_init(rostopic_name=sys.argv[2])
-            elif sys.argv[1] == '-output_frame':
-                svm_ifsc_detector.signals_publisher_init(rostopic_name=sys.argv[2])
+    elif len(sys.argv)==3:
+        if sys.argv[1] == '-input':
+            svm_ifsc_detector.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            svm_ifsc_detector.output_frame_publisher_init()
+        elif sys.argv[1] == '-output':
+            svm_ifsc_detector.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            svm_ifsc_detector.input_frame_subscriber_init()
         else:
-            svm_ifsc_detector.signals_subscriber_init()
-
-        if len(sys.argv)>=5:      
-            if sys.argv[3] == '-input_frame':
-                svm_ifsc_detector.signals_subscriber_init(rostopic_name=sys.argv[4])
-            elif sys.argv[3] == '-output_frame':
-                svm_ifsc_detector.signals_publisher_init(rostopic_name=sys.argv[4])
+            svm_ifsc_detector.input_frame_subscriber_init()
+            svm_ifsc_detector.output_frame_publisher_init()
+    elif len(sys.argv)==5:      
+        if sys.argv[1] == '-input':
+            svm_ifsc_detector.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            svm_ifsc_detector.output_frame_publisher_init(rostopic_name=sys.argv[4])
+        elif sys.argv[1] == '-output':
+            svm_ifsc_detector.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            svm_ifsc_detector.input_frame_subscriber_init(rostopic_name=sys.argv[4])
         else:
-            svm_ifsc_detector.signals_publisher_init()
+            svm_ifsc_detector.input_frame_subscriber_init()
+            svm_ifsc_detector.output_frame_publisher_init()
 
-        svm_ifsc_detector.delta_t_service_init()
-        svm_ifsc_detector.main_loop()
+    else:
+        svm_ifsc_detector.input_frame_subscriber_init()
+        svm_ifsc_detector.output_frame_publisher_init()
+
+    svm_ifsc_detector.delta_t_service_init()
+    svm_ifsc_detector.main_loop()
 
 if __name__ == '__main__':
     try:

@@ -7,8 +7,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
-def ip_cam_test():
-    
+def ip_cam_test():   
     #video_capture = cv2.VideoCapture('/home/lucas/Videos/driver_1.mp4')
     video_capture = cv2.VideoCapture('rtsp://admin:admin123@192.168.1.100:554')
 

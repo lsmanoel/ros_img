@@ -15,8 +15,7 @@ from image_process import ImageProcess
 class RcnnInceptionV2(ImageProcess):
     def __init__(self,
                  name=None,
-                 input_frame=None,
-                 fps=30,
+                 rate=30,
                  delta_t_buffer_size=1000,
                  rcnn_datapath="/home/lucas/catkin_ws/src/ros_img/script/mask-rcnn-coco",
                  weights="frozen_inference_graph.pb",
@@ -28,9 +27,8 @@ class RcnnInceptionV2(ImageProcess):
             name='canny_filter'
 
         super(RcnnInceptionV2, self).__init__(name=name,
-                                          input_frame=input_frame,
-                                          fps=fps,
-                                          delta_t_buffer_size=delta_t_buffer_size)
+                                              rate=rate,
+                                              delta_t_buffer_size=delta_t_buffer_size)
 
         # derive the paths to the Mask R-CNN weights and model configuration
         self.rcnn_datapath = rcnn_datapath
@@ -54,9 +52,9 @@ class RcnnInceptionV2(ImageProcess):
     # ----------------------------------------------------------------------------------------
     # Main Loop 
     def main_process(self):
-        t0 = rospy.get_rostime().nsecs
         # -----------------------------------
         frame = self.input_frame.copy()
+        # **************************
         (H, W) = frame.shape[:2]
         
         blob = cv2.dnn.blobFromImage(frame, swapRB=True, crop=False)
@@ -165,27 +163,37 @@ class RcnnInceptionV2(ImageProcess):
 
         # -----------------------------------
         # frameCopy = cv2.cvtColor(frameCopy, cv2.COLOR_BGR2RGB)
-        self.pub_output.publish(self.bridge.cv2_to_imgmsg(frameCopy))
-
+        # **************************
+        self.output_frame = frameCopy.copy()
 
 # ======================================================================================================================
 def rcnn_inception_v2():
     rcnn_inception_v2 = RcnnInceptionV2()
-    if len(sys.argv)>=3:      
-        if sys.argv[1] == '-input_frame':
-            rcnn_inception_v2.signals_subscriber_init(rostopic_name=sys.argv[2])
-        elif sys.argv[1] == '-output_frame':
-            rcnn_inception_v2.signals_publisher_init(rostopic_name=sys.argv[2])
-    else:
-        rcnn_inception_v2.signals_subscriber_init()
 
-    if len(sys.argv)>=5:      
-        if sys.argv[3] == '-input_frame':
-            rcnn_inception_v2.signals_subscriber_init(rostopic_name=sys.argv[4])
-        elif sys.argv[3] == '-output_frame':
-            rcnn_inception_v2.signals_publisher_init(rostopic_name=sys.argv[4])
+    if len(sys.argv)==3:
+        if sys.argv[1] == '-input':
+            rcnn_inception_v2.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            rcnn_inception_v2.output_frame_publisher_init()
+        elif sys.argv[1] == '-output':
+            rcnn_inception_v2.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            rcnn_inception_v2.input_frame_subscriber_init()
+        else:
+            rcnn_inception_v2.input_frame_subscriber_init()
+            rcnn_inception_v2.output_frame_publisher_init()
+    elif len(sys.argv)==5:      
+        if sys.argv[1] == '-input':
+            rcnn_inception_v2.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            rcnn_inception_v2.output_frame_publisher_init(rostopic_name=sys.argv[4])
+        elif sys.argv[1] == '-output':
+            rcnn_inception_v2.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            rcnn_inception_v2.input_frame_subscriber_init(rostopic_name=sys.argv[4])
+        else:
+            rcnn_inception_v2.input_frame_subscriber_init()
+            rcnn_inception_v2.output_frame_publisher_init()
+
     else:
-        rcnn_inception_v2.signals_publisher_init()
+        rcnn_inception_v2.input_frame_subscriber_init()
+        rcnn_inception_v2.output_frame_publisher_init()
     
     rcnn_inception_v2.delta_t_service_init()
     rcnn_inception_v2.main_loop()
