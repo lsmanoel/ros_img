@@ -101,7 +101,7 @@ class ImageProcess(object):
     def main_process(self):
         frame = self.input_frame.copy()
         # **************************
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # PROCESS
         # **************************
         self.output_frame = frame.copy() 
         

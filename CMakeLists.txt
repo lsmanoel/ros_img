@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   cv_bridge
   image_transport
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -145,6 +146,12 @@ target_link_libraries(show_frame_bgr8 ${OpenCV_LIBRARIES})
 add_executable(ip_cam_vision_bgr8 src/ip_cam_vision_bgr8.cpp)
 target_link_libraries(ip_cam_vision_bgr8 ${catkin_LIBRARIES})
 target_link_libraries(ip_cam_vision_bgr8 ${OpenCV_LIBRARIES})
+
+add_executable(image_process src/image_process.cpp)
+target_link_libraries(image_process ${catkin_LIBRARIES})
+target_link_libraries(image_process ${OpenCV_LIBRARIES})
+# add_dependencies(image_process ros_img)
+# add_dependencies(image_process image_transport)
 
 #-------------------------------------------------------------------------------------------------------
 ## Specify additional locations of header files
