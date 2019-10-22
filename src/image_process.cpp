@@ -9,6 +9,15 @@
 #include "ros_img/return_data.h" 
 // using namespace std;
 
+std::list<int64_t> _delta_t;
+
+bool delta_t_service(ros_img::return_data::Request  &req, ros_img::return_data::Response &res)
+{
+	std::list<int64_t>::iterator iter;
+	for(iter=_delta_t.begin(); iter!=_delta_t.end();iter++)
+		 res.data.push_back(*iter);
+}
+
 class ImageProcess
 {
 	std::string name;
@@ -16,8 +25,6 @@ class ImageProcess
 	int rate;
 
 	const int delta_t_buffer_size = 1000;
-	std::list <int> _delta_t;
-
 	cv::Mat input_frame;
 	cv::Mat output_frame;
 	cv::Mat frame;
@@ -73,17 +80,11 @@ public:
 
 	// ----------------------------------------------------------------------------------------
 	// rosservices
-	bool delta_t_service(ros_img::return_data::Request  &req, ros_img::return_data::Response &res)
-	{
-		// std::vector<int64_t> delta_t[delta_t_buffer_size];
-		// std::fill(delta_t.begin(), delta_t.end(), 0);
-		// std:copy(_delta_t.begin(), _delta_t.end(), delta_t);
-		// res.data = delta_t; 
-	}
+	//bool delta_t_service(ros_img::return_data::Request  &req, ros_img::return_data::Response &res)
 
 	void delta_t_service_init()
 	{
-		// _delta_t_service = n.advertiseService(name + "_delta_t_cpp_service", ImageProcess::delta_t_service_init);
+		_delta_t_service = nh.advertiseService(name + "_delta_t_cpp_service", delta_t_service);
 	}
 
 	// ----
@@ -106,37 +107,41 @@ public:
 		int t, t0, d_t;
 		ros::Rate loop_rate(rate);
 		// ------------------------------------------
-		// while (nh.ok())
-		// {
-		// 	loop_rate.sleep();
-		// 	if(!input_frame.empty())
-		// 	{
-		// 		// --------------------------
-		// 		t = ros::Time::now();;
-		// 		// **************************
-		// 		main_process();
-		// 		// **************************
-		// 		// --------------------------
-		// 		t0 = ros::Time::now();;
-		// 		d_t = t - t0;
-		// 		if (d_t > 0)
-		// 			delta_t_setter(d_t);
-		// 	} 
-		// }
+		while (nh.ok())
+		{
+			loop_rate.sleep();
+			if(!input_frame.empty())
+			{
+				// --------------------------
+				t = ros::Time::now().toNSec();
+				// **************************
+				main_process();
+				// **************************
+				// --------------------------
+				t0 = ros::Time::now().toNSec();
+				d_t = t - t0;
+				if (d_t > 0)
+					delta_t_setter(d_t);
+			} 
+		}
 	}
 
 	void main_process()
 	{
-		// frame << input_frame;
+		frame = input_frame;
 		// // **************************
 		// // PROCESS
 		// // **************************
-		// output_frame << frame; 
+		output_frame = frame; 
 	}
 
 };
+
 int main(int argc, char** argv)
 {
+	// ros::init(argc, argv, "image_process");
+	ImageProcess img_process(argc, argv, "image_process", 30);
+	ros::spin();
 	return 0;
 }
 
