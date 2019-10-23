@@ -24,7 +24,7 @@ class RcnnInceptionV2(ImageProcess):
                  colors="colors.txt"):
 
         if name is None:
-            name='canny_filter'
+            name='rcnn_inception_v2'
 
         super(RcnnInceptionV2, self).__init__(name=name,
                                               rate=rate,

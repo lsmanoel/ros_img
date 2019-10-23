@@ -10,8 +10,8 @@ int main(int argc, char** argv)
 
   const int FULL_FRAME_WIDTH = 640;
   const int FULL_FRAME_HEIGHT = 480;
-  const int VIEW_FRAME_WIDTH = 320;
-  const int VIEW_FRAME_HEIGHT = 240;
+  const int VIEW_FRAME_WIDTH = 640;
+  const int VIEW_FRAME_HEIGHT = 480;
 
   //=========================================================
   // Check if video source has been passed as a parameter
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 
   //=========================================================
   //Buffer Ping Pong
-  cv::Mat input_frame, ping_frame, pong_frame;
+  cv::Mat input_frame, ping_frame, pong_frame, output_frame;
   // Rotation Matrix
   cv::Point2f src_center(FULL_FRAME_WIDTH/2.0F, FULL_FRAME_HEIGHT/2.0F);
   cv::Mat rot_mat = cv::getRotationMatrix2D(src_center, rot_angle, 1.0);
@@ -71,9 +71,10 @@ int main(int argc, char** argv)
     if(!input_frame.empty()) {
    	  //===============================================================================
       cv::warpAffine(input_frame, ping_frame, rot_mat, input_frame.size());
-      pong_frame = ping_frame(roi_size);
+      output_frame = ping_frame(roi_size);
       //===============================================================================
-      msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", pong_frame).toImageMsg();
+      // cv::cvtColor(pong_frame, output_frame, CV_RGB2BGR);
+      msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", output_frame).toImageMsg();
       pub.publish(msg);
       cv::waitKey(1);
     }

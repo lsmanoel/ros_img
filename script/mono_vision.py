@@ -12,7 +12,7 @@ def mono_vision():
     
     #video_capture = cv2.VideoCapture('/home/lucas/Videos/driver_1.mp4')
     video_capture = cv2.VideoCapture(0)
-    pub = rospy.Publisher('mono_vision', Image, queue_size=10)
+    pub = rospy.Publisher('/image_process_input_frame_cpp', Image, queue_size=10)
     bridge = CvBridge()
 
     rospy.init_node('mono_vision', anonymous=True)
