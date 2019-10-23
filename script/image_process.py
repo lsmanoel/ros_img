@@ -34,8 +34,8 @@ class ImageProcess(object):
 
         self.bridge = CvBridge()
         self.input_frame = None
+        self.input_frame_flag = None
         self.output_frame = None
-
         self.pub_output = None
 
     # ----------------------------------------------------------------------------------------
@@ -49,6 +49,7 @@ class ImageProcess(object):
     # ----
     def input_frame_callback(self, frame):
         self.input_frame = self.bridge.imgmsg_to_cv2(frame)
+        self.input_frame_flag = True
 
     def input_frame_subscriber_init(self, rostopic_name=None):
         if rostopic_name is None:
@@ -81,7 +82,8 @@ class ImageProcess(object):
         # ------------------------------------------
         while not rospy.is_shutdown():
             self.rate.sleep()
-            if self.input_frame is not None:
+            if self.input_frame is not None and self.input_frame_flag is not None:
+                self.input_frame_flag = None
                 # --------------------------
                 t0 = rospy.get_rostime().nsecs
                 # **************************
