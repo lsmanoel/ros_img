@@ -1,5 +1,8 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1)
 project(ros_img)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -116,7 +119,8 @@ catkin_package(
 ## Build ##
 ###########
 
-find_package(OpenCV)
+find_package(OpenCV 4.0 REQUIRED)
+
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_executable(mono_display_mono8 src/misc/mono_display_mono8.cpp)
@@ -139,9 +143,9 @@ target_link_libraries(mono_vision_bgr8 ${OpenCV_LIBRARIES})
 # target_link_libraries(stereo_vision_mono8 ${catkin_LIBRARIES})
 # target_link_libraries(stereo_vision_mono8 ${OpenCV_LIBRARIES})
 
-add_executable(show_frame_bgr8 src/misc/show_frame_bgr8.cpp)
-target_link_libraries(show_frame_bgr8 ${catkin_LIBRARIES})
-target_link_libraries(show_frame_bgr8 ${OpenCV_LIBRARIES})
+# add_executable(show_frame_bgr8 src/misc/show_frame_bgr8.cpp)
+# target_link_libraries(show_frame_bgr8 ${catkin_LIBRARIES})
+# target_link_libraries(show_frame_bgr8 ${OpenCV_LIBRARIES})
 
 add_executable(ip_cam_vision_bgr8 src/misc/ip_cam_vision_bgr8.cpp)
 target_link_libraries(ip_cam_vision_bgr8 ${catkin_LIBRARIES})
