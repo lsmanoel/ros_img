@@ -119,56 +119,56 @@ catkin_package(
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-# add_executable(mono_display_mono8 src/misc/mono_display_mono8.cpp)
-# target_link_libraries(mono_display_mono8 ${catkin_LIBRARIES})
-# target_link_libraries(mono_display_mono8 ${OpenCV_LIBRARIES})
+add_executable(mono_display_mono8 src/misc/mono_display_mono8.cpp)
+target_link_libraries(mono_display_mono8 ${catkin_LIBRARIES})
+target_link_libraries(mono_display_mono8 ${OpenCV_LIBRARIES})
 
-# add_executable(mono_display_bgr8 src/misc/mono_display_bgr8.cpp)
-# target_link_libraries(mono_display_bgr8 ${catkin_LIBRARIES})
-# target_link_libraries(mono_display_bgr8 ${OpenCV_LIBRARIES})
+add_executable(mono_display_bgr8 src/misc/mono_display_bgr8.cpp)
+target_link_libraries(mono_display_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(mono_display_bgr8 ${OpenCV_LIBRARIES})
 
-# add_executable(mono_vision_mono8 src/misc/mono_vision_mono8.cpp)
-# target_link_libraries(mono_vision_mono8 ${catkin_LIBRARIES})
-# target_link_libraries(mono_vision_mono8 ${OpenCV_LIBRARIES})
+add_executable(mono_vision_mono8 src/misc/mono_vision_mono8.cpp)
+target_link_libraries(mono_vision_mono8 ${catkin_LIBRARIES})
+target_link_libraries(mono_vision_mono8 ${OpenCV_LIBRARIES})
 
-# add_executable(mono_vision_bgr8 src/misc/mono_vision_bgr8.cpp)
-# target_link_libraries(mono_vision_bgr8 ${catkin_LIBRARIES})
-# target_link_libraries(mono_vision_bgr8 ${OpenCV_LIBRARIES})
+add_executable(mono_vision_bgr8 src/misc/mono_vision_bgr8.cpp)
+target_link_libraries(mono_vision_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(mono_vision_bgr8 ${OpenCV_LIBRARIES})
 
-# # add_executable(stereo_vision_mono8 src/misc/stereo_vision_mono8.cpp)
-# # target_link_libraries(stereo_vision_mono8 ${catkin_LIBRARIES})
-# # target_link_libraries(stereo_vision_mono8 ${OpenCV_LIBRARIES})
+# add_executable(stereo_vision_mono8 src/misc/stereo_vision_mono8.cpp)
+# target_link_libraries(stereo_vision_mono8 ${catkin_LIBRARIES})
+# target_link_libraries(stereo_vision_mono8 ${OpenCV_LIBRARIES})
 
-# add_executable(show_frame_bgr8 src/misc/show_frame_bgr8.cpp)
-# target_link_libraries(show_frame_bgr8 ${catkin_LIBRARIES})
-# target_link_libraries(show_frame_bgr8 ${OpenCV_LIBRARIES})
+add_executable(show_frame_bgr8 src/misc/show_frame_bgr8.cpp)
+target_link_libraries(show_frame_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(show_frame_bgr8 ${OpenCV_LIBRARIES})
 
-# add_executable(ip_cam_vision_bgr8 src/misc/ip_cam_vision_bgr8.cpp)
-# target_link_libraries(ip_cam_vision_bgr8 ${catkin_LIBRARIES})
-# target_link_libraries(ip_cam_vision_bgr8 ${OpenCV_LIBRARIES})
+add_executable(ip_cam_vision_bgr8 src/misc/ip_cam_vision_bgr8.cpp)
+target_link_libraries(ip_cam_vision_bgr8 ${catkin_LIBRARIES})
+target_link_libraries(ip_cam_vision_bgr8 ${OpenCV_LIBRARIES})
 
-# # IMAGE PROCESS
-# add_executable(image_process 
-#   src/image_process/ImageProcess.cpp 
-#   src/image_process/image_process.cpp)
-# target_link_libraries(image_process ${catkin_LIBRARIES})
-# target_link_libraries(image_process ${OpenCV_LIBRARIES})
+# IMAGE PROCESS
+add_executable(image_process 
+  src/image_process/ImageProcess.cpp 
+  src/image_process/image_process.cpp)
+target_link_libraries(image_process ${catkin_LIBRARIES})
+target_link_libraries(image_process ${OpenCV_LIBRARIES})
 
-# add_executable(canny_filter 
-#   src/image_process/ImageProcess.cpp
-#   src/image_process/CannyFilter.cpp  
-#   src/image_process/canny_filter.cpp)
-# set_target_properties(canny_filter PROPERTIES COMPILE_DEFINITIONS "__CANNY_FILTER__")
-# target_link_libraries(canny_filter ${catkin_LIBRARIES})
-# target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
+add_executable(canny_filter 
+  src/image_process/ImageProcess.cpp
+  src/image_process/CannyFilter.cpp  
+  src/image_process/canny_filter.cpp)
+set_target_properties(canny_filter PROPERTIES COMPILE_DEFINITIONS "__CANNY_FILTER__")
+target_link_libraries(canny_filter ${catkin_LIBRARIES})
+target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
 
-# add_executable(signature_histogram 
-#   src/image_process/ImageProcess.cpp
-#   src/image_process/SignatureHistogram.cpp  
-#   src/image_process/signature_histogram.cpp)
-# set_target_properties(signature_histogram PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
-# target_link_libraries(signature_histogram ${catkin_LIBRARIES})
-# target_link_libraries(signature_histogram ${OpenCV_LIBRARIES})
+add_executable(signature_histogram 
+  src/image_process/ImageProcess.cpp
+  src/image_process/SignatureHistogram.cpp  
+  src/image_process/signature_histogram.cpp)
+set_target_properties(signature_histogram PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
+target_link_libraries(signature_histogram ${catkin_LIBRARIES})
+target_link_libraries(signature_histogram ${OpenCV_LIBRARIES})
 
 #-------------------------------------------------------------------------------------------------------
 ## Specify additional locations of header files
