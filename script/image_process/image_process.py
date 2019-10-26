@@ -16,12 +16,14 @@ class ImageProcess(object):
     def __init__(self,
                  name=None,
                  rate=30,
-                 delta_t_buffer_size=1000):
-
+                 delta_t_buffer_size=1000):      
         if name is None:
             self.name='image_process'
         else:
             self.name=name
+
+        print(self.name, ' init ...')
+        print('opencv version ', cv2.__version__)
 
         rospy.init_node(self.name, anonymous=True)
 
@@ -37,7 +39,11 @@ class ImageProcess(object):
         self.input_frame_flag = None
         self.output_frame = None
         self.pub_output = None
-
+        
+        self.FULL_FRAME_WIDTH = 640;
+        self.FULL_FRAME_HEIGHT = 480;
+        self.VIEW_FRAME_WIDTH = 640;
+        self.VIEW_FRAME_HEIGHT = 480;
     # ----------------------------------------------------------------------------------------
     # rostopics
     def output_frame_publisher_init(self, rostopic_name=None):

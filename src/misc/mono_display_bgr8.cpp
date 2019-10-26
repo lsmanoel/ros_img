@@ -23,7 +23,7 @@ int main(int argc, char **argv)
   cv::namedWindow("mono_display_bgr8");
   // cv::startWindowThread();
   image_transport::ImageTransport it(nh);
-  image_transport::Subscriber sub = it.subscribe("mono_vision_raw_bgr8", 1, imageCallback);
+  image_transport::Subscriber sub = it.subscribe("mono_display_bgr8", 1, imageCallback);
   ros::spin();
   cv::destroyWindow("mono_display_bgr8");
 }

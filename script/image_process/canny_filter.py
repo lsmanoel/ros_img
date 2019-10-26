@@ -26,41 +26,11 @@ class CannyFilter(ImageProcess):
                                           delta_t_buffer_size=delta_t_buffer_size)
 
     # ----------------------------------------------------------------------------------------
-    @staticmethod
-    def signature_histogram_generation(frame):
-        # frame_output = np.zeros((frame_input.shape))
-        histogram = np.zeros(frame.shape[0])
-
-        for i, line in enumerate(frame[:,]):
-            line_energy = np.sum(line/255)
-            # print(line)
-            histogram[i] = int(line_energy)
-
-        return histogram
-
-    @staticmethod
-    def show_array(array, output_frame_shape):
-        output_frame = np.zeros(output_frame_shape)
-        #print(frame_output_shape)
-        for i, value in enumerate(array):
-            value = int(value)
-            if value >= output_frame_shape[1]:
-                value = output_frame_shape[1]
-            #print(int(value))
-            output_frame[i,:int(value)] = np.ones(int(value))
-
-        return output_frame
-
-    # ----------------------------------------------------------------------------------------
     # Main Loop        
     def main_process(self):
         frame = self.input_frame.copy()
         # **************************
         frame = cv2.Canny(frame, 100, 200)
-        frame = self.show_array(self.signature_histogram_generation(frame), frame.shape)
-
-        # -----------------------------------
-        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # **************************
         self.output_frame = frame.copy() 
 

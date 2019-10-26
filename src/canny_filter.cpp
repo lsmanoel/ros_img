@@ -1,1 +1,0 @@
-canny_filter.cpp
