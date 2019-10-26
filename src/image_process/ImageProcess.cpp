@@ -4,8 +4,8 @@ ImageProcess::ImageProcess(int argc, char** argv, std::string name_in, int rate_
   : it(nh)
 {
 	ROS_INFO("%s init...", name_in.c_str());
-	ROS_INFO("opencv bersion: %s" , CV_VERSION);
-	
+	ROS_INFO("opencv version: %s" , CV_VERSION);
+
 	name = name_in;
 	rate = rate_in;
 
