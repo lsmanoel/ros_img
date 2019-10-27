@@ -64,7 +64,7 @@ public:
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
 	void main_loop();
-	void loop_bulk_process();
+	void bulk_process();
 	virtual cv::Mat main_process(cv::Mat frame);
 
 };
