@@ -124,7 +124,7 @@ void ImageProcess::bulk_process()
 
 cv::Mat ImageProcess::main_process(cv::Mat frame)
 {
-	// ROS_INFO("ImageProcess::main_process()");
+	ROS_INFO("ImageProcess::main_process()");
 	// **************************
 	// PROCESS
 	// **************************
