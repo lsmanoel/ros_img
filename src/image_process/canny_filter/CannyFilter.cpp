@@ -9,16 +9,15 @@ CannyFilter::CannyFilter(int argc, char** argv, std::string name_in, int rate_in
 
 // ----------------------------------------------------------------------------------------
 
-void CannyFilter::main_process()
+cv::Mat  CannyFilter::main_process(cv::Mat frame)
 {
 	// ROS_INFO("CannyFilter::main_process()");
-	input_frame.copyTo(frame);
 	// // **************************
 	// // PROCESS
 	cv::cvtColor(frame, frame, CV_BGR2GRAY);
 	cv::Canny(frame, frame, 50, 150, 3);
 	// // **************************
-	frame.copyTo(output_frame);
+	return frame;
 }
 
 // # frame_output = np.zeros((frame_input.shape))

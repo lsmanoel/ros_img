@@ -1,4 +1,4 @@
-#include "ImageProcess.h"
+#include "../image_process/ImageProcess.h"
 
 class CannyFilter: public ImageProcess
 {
@@ -8,5 +8,5 @@ public:
 
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
-	void main_process();
+	virtual cv::Mat main_process(cv::Mat frame);
 };

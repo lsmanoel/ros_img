@@ -1,4 +1,4 @@
-#include "SignatureHistogram.h"
+#include "signature_histogram/SignatureHistogram.h"
 
 // ======================================================================================================================
 int main(int argc, char** argv)

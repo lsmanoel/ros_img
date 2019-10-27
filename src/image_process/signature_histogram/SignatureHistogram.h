@@ -1,4 +1,4 @@
-#include "ImageProcess.h"
+#include "../image_process/ImageProcess.h"
 
 class SignatureHistogram: public ImageProcess
 {
@@ -13,5 +13,5 @@ public:
 
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
-	void main_process();
+	virtual cv::Mat main_process(cv::Mat frame);
 };

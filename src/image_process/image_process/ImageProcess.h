@@ -18,6 +18,7 @@ protected:
 	std::string name;
 
 	int rate;
+	std_msgs::Int64 t, t0, d_t;
 	const int delta_t_buffer_size = 1000;
 
 	std_msgs::Int64MultiArray _delta_t;
@@ -31,7 +32,6 @@ protected:
 	cv::Mat input_frame;
 	int frame_flag = 0;
 	cv::Mat output_frame;
-	cv::Mat frame;
 	std::string input_frame_type, output_frame_type;
 
   	ros::NodeHandle nh;
@@ -40,8 +40,6 @@ protected:
 	image_transport::Subscriber sub_input;
 	sensor_msgs::ImagePtr msg;
 	ros::ServiceServer _delta_t_service;
-
-
 
 public:
 	ImageProcess(int argc, char** argv, std::string name_in, int rate_in);
@@ -66,7 +64,8 @@ public:
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
 	void main_loop();
-	virtual void main_process();
+	void loop_bulk_process();
+	virtual cv::Mat main_process(cv::Mat frame);
 
 };
 

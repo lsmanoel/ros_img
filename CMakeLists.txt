@@ -119,6 +119,7 @@ catkin_package(
 ## Build ##
 ###########
 
+# include(/home/lucas/OpenCV_installation/OpenCV-master/lib/cmake/opencv4/OpenCVConfig.cmake)
 find_package(OpenCV)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -153,34 +154,65 @@ target_link_libraries(ip_cam_vision_bgr8 ${OpenCV_LIBRARIES})
 
 # IMAGE PROCESS
 add_executable(image_process 
-  src/image_process/ImageProcess.cpp 
+  src/image_process/image_process/ImageProcess.cpp 
   src/image_process/image_process.cpp)
+set_target_properties(image_process PROPERTIES COMPILE_DEFINITIONS "__IMAGE_PROCESS__")
 target_link_libraries(image_process ${catkin_LIBRARIES})
 target_link_libraries(image_process ${OpenCV_LIBRARIES})
 
-add_executable(canny_filter 
-  src/image_process/ImageProcess.cpp
-  src/image_process/CannyFilter.cpp  
-  src/image_process/canny_filter.cpp)
-set_target_properties(canny_filter PROPERTIES COMPILE_DEFINITIONS "__CANNY_FILTER__")
-target_link_libraries(canny_filter ${catkin_LIBRARIES})
-target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
+# add_executable(mono_display 
+#   src/image_process/image_process/ImageProcess.cpp
+#   src/image_process/mono_display/MonoDisplay.cpp  
+#   src/image_process/mono_display.cpp)
+# set_target_properties(mono_display PROPERTIES COMPILE_DEFINITIONS "__MONO_DISPLAY__")
+# target_link_libraries(mono_display ${catkin_LIBRARIES})
+# target_link_libraries(mono_display ${OpenCV_LIBRARIES})
 
-add_executable(signature_histogram 
-  src/image_process/ImageProcess.cpp
-  src/image_process/SignatureHistogram.cpp  
-  src/image_process/signature_histogram.cpp)
-set_target_properties(signature_histogram PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
-target_link_libraries(signature_histogram ${catkin_LIBRARIES})
-target_link_libraries(signature_histogram ${OpenCV_LIBRARIES})
+# add_executable(mono_vision 
+#   src/image_process/image_process/ImageProcess.cpp
+#   src/image_process/mono_vision/MonoVision.cpp  
+#   src/image_process/mono_vision.cpp)
+# set_target_properties(mono_vision PROPERTIES COMPILE_DEFINITIONS "__MONO_VISION__")
+# target_link_libraries(mono_vision ${catkin_LIBRARIES})
+# target_link_libraries(mono_vision ${OpenCV_LIBRARIES})
+
+add_executable(move_frame 
+  src/image_process/image_process/ImageProcess.cpp
+  src/image_process/move_frame/MoveFrame.cpp  
+  src/image_process/move_frame.cpp)
+set_target_properties(move_frame PROPERTIES COMPILE_DEFINITIONS "__MOVE_FRAME__")
+target_link_libraries(move_frame ${catkin_LIBRARIES})
+target_link_libraries(move_frame ${OpenCV_LIBRARIES})
+
+# add_executable(canny_filter 
+#   src/image_process/image_process/ImageProcess.cpp
+#   src/image_process/canny_filter/CannyFilter.cpp  
+#   src/image_process/canny_filter.cpp)
+# set_target_properties(canny_filter PROPERTIES COMPILE_DEFINITIONS "__CANNY_FILTER__")
+# target_link_libraries(canny_filter ${catkin_LIBRARIES})
+# target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
+
+# add_executable(signature_histogram 
+#   src/image_process/image_process/ImageProcess.cpp
+#   src/image_process/signature_histogram/SignatureHistogram.cpp  
+#   src/image_process/signature_histogram.cpp)
+# set_target_properties(signature_histogram PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
+# target_link_libraries(signature_histogram ${catkin_LIBRARIES})
+# target_link_libraries(signature_histogram ${OpenCV_LIBRARIES})
+
+# add_executable(stereo_vision 
+#   src/image_process/image_process/ImageProcess.cpp
+#   src/image_process/stereo_vision/StereoVision.cpp  
+#   src/image_process/stereo_vision.cpp)
+# set_target_properties(stereo_vision PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
+# target_link_libraries(stereo_vision ${catkin_LIBRARIES})
+# target_link_libraries(stereo_vision ${OpenCV_LIBRARIES})
 
 #-------------------------------------------------------------------------------------------------------
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
+
+include_directories(${catkin_INCLUDE_DIRS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

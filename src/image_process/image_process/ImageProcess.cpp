@@ -11,10 +11,6 @@ ImageProcess::ImageProcess(int argc, char** argv, std::string name_in, int rate_
 
 	frame_flag = 0;
 
-	input_frame = cv::Mat(VIEW_FRAME_HEIGHT, VIEW_FRAME_WIDTH, CV_8UC3);
-	output_frame = cv::Mat(VIEW_FRAME_HEIGHT, VIEW_FRAME_WIDTH, CV_8UC3);
-	frame = cv::Mat(VIEW_FRAME_HEIGHT, VIEW_FRAME_WIDTH, CV_8UC3);
-
 	input_frame_type = "bgr8";
 	output_frame_type = "bgr8";
 }
@@ -40,6 +36,7 @@ void ImageProcess::input_frame_callback(const sensor_msgs::ImageConstPtr& msg)
 	{
 		frame_flag = 1;
 		input_frame = cv_bridge::toCvShare(msg, input_frame_type.c_str())->image;
+		bulk_process();
 	}
 	catch (cv_bridge::Exception& e)
 	{
@@ -63,9 +60,6 @@ void ImageProcess::input_frame_subscriber_init(std::string rostopic_name/*="None
 // rosservices
 bool ImageProcess::delta_t_service(ros_img::return_data::Request  &req, ros_img::return_data::Response &res)
 {
-	// std::list<std_msgs::Int64>::iterator iter;
-	// for(iter=_delta_t.data.begin(); iter!=_delta_t.data.end();iter++)
-		 // res.data.push_back(*iter);
 	res.data = _delta_t.data;
 }
 
@@ -92,40 +86,47 @@ void ImageProcess::delta_t_setter(std_msgs::Int64 d_t)
 // Main Loop
 void ImageProcess::main_loop()
 {
-	std_msgs::Int64 t, t0, d_t;
-	ros::Rate loop_rate(rate);
-	// ------------------------------------------
-	while (nh.ok())
-	{
-		loop_rate.sleep();
-		ros::spinOnce();
-		if(frame_flag && !input_frame.empty())
-		{
-			frame_flag=0;
-			// --------------------------
-			t0.data = ros::Time::now().toNSec();
-			// **************************	
-			main_process();
-			// **************************
-			msg = cv_bridge::CvImage(std_msgs::Header(), output_frame_type.c_str(), output_frame).toImageMsg();
-			pub_output.publish(msg);
-
-			// --------------------------
-			t.data = ros::Time::now().toNSec();
-			d_t.data = t.data - t0.data;
-			if (d_t.data > 0)
-				delta_t_setter(d_t);
-		} 
-	}
-	// ------------------------------------------
+	ros::spin();
 }
 
-void ImageProcess::main_process()
+void ImageProcess::bulk_process()
+{
+	t0.data = ros::Time::now().toNSec();
+	// **************************	
+	output_frame = main_process(input_frame);
+	// **************************
+	t.data = ros::Time::now().toNSec();
+
+	// --------------------------
+	msg = cv_bridge::CvImage(std_msgs::Header(), output_frame_type, output_frame).toImageMsg();
+	pub_output.publish(msg);	
+	d_t.data = t.data - t0.data;
+	if (d_t.data > 0)
+		delta_t_setter(d_t);
+}
+
+// void ImageProcess::main_loop()
+// {
+// 	ros::Rate loop_rate(rate);
+// 	// ------------------------------------------
+// 	while (nh.ok())
+// 	{
+// 		loop_rate.sleep();
+// 		ros::spinOnce();
+// 		if(frame_flag && !input_frame.empty())
+// 		{
+// 			frame_flag=0;
+// 			bulk_process();
+// 		} 
+// 	}
+// 	// ------------------------------------------
+// }
+
+cv::Mat ImageProcess::main_process(cv::Mat frame)
 {
 	// ROS_INFO("ImageProcess::main_process()");
-	input_frame.copyTo(frame);
-	// // **************************
-	// // PROCESS
-	// // **************************
-	frame.copyTo(output_frame); 
+	// **************************
+	// PROCESS
+	// **************************
+	return frame;
 }

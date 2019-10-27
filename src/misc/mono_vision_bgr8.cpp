@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 
   //=========================================================
   //Buffer Ping Pong
-  cv::Mat input_frame, ping_frame, pong_frame, output_frame;
+  cv::Mat input_frame, ping_frame, pong_frame, output_frame, frame;
   // Rotation Matrix
   cv::Point2f src_center(FULL_FRAME_WIDTH/2.0F, FULL_FRAME_HEIGHT/2.0F);
   cv::Mat rot_mat = cv::getRotationMatrix2D(src_center, rot_angle, 1.0);
@@ -69,8 +69,9 @@ int main(int argc, char** argv)
     cap >> input_frame;  
     // Check if grabbed frame is actually full with some content
     if(!input_frame.empty()) {
+      frame = input_frame.clone();
    	  //===============================================================================
-      cv::warpAffine(input_frame, ping_frame, rot_mat, input_frame.size());
+      cv::warpAffine(frame, ping_frame, rot_mat, input_frame.size());
       output_frame = ping_frame(roi_size);
       //===============================================================================
       // cv::cvtColor(pong_frame, output_frame, CV_RGB2BGR);

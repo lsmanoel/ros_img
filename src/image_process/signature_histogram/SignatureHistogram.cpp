@@ -62,15 +62,14 @@ cv::Mat SignatureHistogram::vertical_histogram(cv::Mat frame)
 	return frame;
 }
 
-void SignatureHistogram::main_process()
+cv::Mat SignatureHistogram::main_process(cv::Mat frame)
 {
 	// ROS_INFO("SignatureHistogram::main_process()");
-	input_frame.copyTo(frame);
 	// // **************************
 	// // PROCESS
 	frame = horizontal_edge_signature(frame);
 	// // **************************
-	frame.copyTo(output_frame); 
+	return frame;
 }
 
 // # frame_output = np.zeros((frame_input.shape))
