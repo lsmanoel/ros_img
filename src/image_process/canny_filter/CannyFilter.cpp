@@ -8,7 +8,6 @@ CannyFilter::CannyFilter(int argc, char** argv, std::string name_in, int rate_in
 }
 
 // ----------------------------------------------------------------------------------------
-
 cv::Mat  CannyFilter::main_process(cv::Mat frame)
 {
 	// ROS_INFO("CannyFilter::main_process()");
@@ -19,13 +18,3 @@ cv::Mat  CannyFilter::main_process(cv::Mat frame)
 	// // **************************
 	return frame;
 }
-
-// # frame_output = np.zeros((frame_input.shape))
-// histogram = np.zeros(frame.shape[0])
-
-// for i, line in enumerate(frame[:,]):
-//     line_energy = np.sum(line/255)
-//     # print(line)
-//     histogram[i] = int(line_energy)
-
-// return histogram

@@ -18,6 +18,7 @@ protected:
 	std::string name;
 
 	int rate;
+	bool callback_process_mode; 
 	std_msgs::Int64 t, t0, d_t;
 	const int delta_t_buffer_size = 1000;
 
@@ -29,8 +30,8 @@ protected:
   	const int VIEW_FRAME_WIDTH = 640;
   	const int VIEW_FRAME_HEIGHT = 480;
 
+	bool frame_flag;
 	cv::Mat input_frame;
-	int frame_flag = 0;
 	cv::Mat output_frame;
 	std::string input_frame_type, output_frame_type;
 

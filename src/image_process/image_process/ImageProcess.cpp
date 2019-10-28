@@ -9,7 +9,8 @@ ImageProcess::ImageProcess(int argc, char** argv, std::string name_in, int rate_
 	name = name_in;
 	rate = rate_in;
 
-	frame_flag = 0;
+	frame_flag = false;
+	callback_process_mode = true;
 
 	input_frame_type = "bgr8";
 	output_frame_type = "bgr8";
@@ -34,9 +35,16 @@ void ImageProcess::input_frame_callback(const sensor_msgs::ImageConstPtr& msg)
 {
 	try
 	{
-		frame_flag = 1;
-		input_frame = cv_bridge::toCvShare(msg, input_frame_type.c_str())->image;
-		bulk_process();
+		if(callback_process_mode == true)
+		{
+			input_frame = cv_bridge::toCvShare(msg, input_frame_type.c_str())->image;
+			bulk_process();
+		}
+		else
+		{
+			input_frame = cv_bridge::toCvShare(msg, input_frame_type.c_str())->image;
+			frame_flag = true;
+		}
 	}
 	catch (cv_bridge::Exception& e)
 	{
@@ -86,7 +94,26 @@ void ImageProcess::delta_t_setter(std_msgs::Int64 d_t)
 // Main Loop
 void ImageProcess::main_loop()
 {
-	ros::spin();
+	if(callback_process_mode == true)
+	{
+		ros::spin();	
+	}
+	else
+	{
+		ros::Rate loop_rate(rate);
+		// --------------------------
+		while (nh.ok())
+		{
+			loop_rate.sleep();
+			ros::spinOnce();
+			if(frame_flag == true)
+			{
+				frame_flag = false;
+				ROS_INFO("a frame was received!");
+			}
+		}
+		// -------------------------- 		
+	}
 }
 
 void ImageProcess::bulk_process()
@@ -100,27 +127,11 @@ void ImageProcess::bulk_process()
 	// --------------------------
 	msg = cv_bridge::CvImage(std_msgs::Header(), output_frame_type, output_frame).toImageMsg();
 	pub_output.publish(msg);	
+	
 	d_t.data = t.data - t0.data;
 	if (d_t.data > 0)
 		delta_t_setter(d_t);
 }
-
-// void ImageProcess::main_loop()
-// {
-// 	ros::Rate loop_rate(rate);
-// 	// ------------------------------------------
-// 	while (nh.ok())
-// 	{
-// 		loop_rate.sleep();
-// 		ros::spinOnce();
-// 		if(frame_flag && !input_frame.empty())
-// 		{
-// 			frame_flag=0;
-// 			bulk_process();
-// 		} 
-// 	}
-// 	// ------------------------------------------
-// }
 
 cv::Mat ImageProcess::main_process(cv::Mat frame)
 {

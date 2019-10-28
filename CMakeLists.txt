@@ -184,13 +184,13 @@ set_target_properties(move_frame PROPERTIES COMPILE_DEFINITIONS "__MOVE_FRAME__"
 target_link_libraries(move_frame ${catkin_LIBRARIES})
 target_link_libraries(move_frame ${OpenCV_LIBRARIES})
 
-# add_executable(canny_filter 
-#   src/image_process/image_process/ImageProcess.cpp
-#   src/image_process/canny_filter/CannyFilter.cpp  
-#   src/image_process/canny_filter.cpp)
-# set_target_properties(canny_filter PROPERTIES COMPILE_DEFINITIONS "__CANNY_FILTER__")
-# target_link_libraries(canny_filter ${catkin_LIBRARIES})
-# target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
+add_executable(canny_filter 
+  src/image_process/image_process/ImageProcess.cpp
+  src/image_process/canny_filter/CannyFilter.cpp  
+  src/image_process/canny_filter.cpp)
+set_target_properties(canny_filter PROPERTIES COMPILE_DEFINITIONS "__CANNY_FILTER__")
+target_link_libraries(canny_filter ${catkin_LIBRARIES})
+target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
 
 # add_executable(signature_histogram 
 #   src/image_process/image_process/ImageProcess.cpp
