@@ -24,6 +24,7 @@ def plot_time():
 
     plt.xlabel('quadro')
     plt.ylabel('tempo de processamento (ns)')
+    plt.ylim((0, 33e6))
     plt.plot(_delta_t.data)
     plt.show()
 

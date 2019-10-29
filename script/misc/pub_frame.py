@@ -8,14 +8,14 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 # ======================================================================================================================
-def mono_vision():
+def pub_frame():
     
     #video_capture = cv2.VideoCapture('/home/lucas/Videos/driver_1.mp4')
     video_capture = cv2.VideoCapture(0)
-    pub = rospy.Publisher('/image_process_input_frame_cpp', Image, queue_size=10)
+    pub = rospy.Publisher('/pub_frame_output_frame', Image, queue_size=10)
     bridge = CvBridge()
 
-    rospy.init_node('mono_vision', anonymous=True)
+    rospy.init_node('pub_frame', anonymous=True)
 
     rate = rospy.Rate(25)
     i = 0
@@ -31,6 +31,6 @@ def mono_vision():
 
 if __name__ == '__main__':
     try:
-        mono_vision()
+        pub_frame()
     except rospy.ROSInterruptException:
         pass

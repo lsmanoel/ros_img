@@ -7,7 +7,8 @@
 int main(int argc, char** argv)
 {
   ROS_INFO("mono_vision_mono8 cpp start...");
-
+  ROS_INFO("opencv version: %s" , CV_VERSION);
+  
   const int FULL_FRAME_WIDTH = 640;
   const int FULL_FRAME_HEIGHT = 480;
   const int VIEW_FRAME_WIDTH = 320;
@@ -33,8 +34,8 @@ int main(int argc, char** argv)
     return 1;
 
   // Configure the camera resolution
-  cap.set(0, FULL_FRAME_WIDTH);
-  cap.set(1, FULL_FRAME_HEIGHT);
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, FULL_FRAME_WIDTH);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, FULL_FRAME_HEIGHT);
 
   int rot_angle;
   if(argv[2] == NULL) 

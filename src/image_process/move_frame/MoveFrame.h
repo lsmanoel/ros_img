@@ -9,9 +9,9 @@ class MoveFrame: public ImageProcess
 	//ROI
 	cv::Rect roi_size;
 public:
-	MoveFrame(int argc, char** argv, std::string name_in, int rate_in);
+	MoveFrame(int argc, char** argv, std::string name_in);
 
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
-	virtual cv::Mat main_process(cv::Mat frame);
+	cv::Mat main_process(cv::Mat frame);
 };

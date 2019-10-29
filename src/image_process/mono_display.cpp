@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	std::string name = "mono_display";
 
 	ros::init(argc, argv, name);
-	MonoDisplay mono_display(argc, argv, name, 30);
+	MonoDisplay mono_display(argc, argv, name);
 	
     if(argc==3)
     {
@@ -66,6 +66,6 @@ int main(int argc, char** argv)
 
     mono_display.delta_t_service_init();
     mono_display.main_loop();
-
+    cv::destroyWindow(name);
 	return 0;
 }

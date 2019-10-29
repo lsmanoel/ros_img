@@ -3,9 +3,9 @@
 class StereoVision: public ImageProcess
 {
 public:
-	StereoVision(int argc, char** argv, std::string name_in, int rate_in);
+	StereoVision(int argc, char** argv, std::string name_in);
 
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
-	virtual cv::Mat main_process(cv::Mat frame);
+	cv::Mat main_process(cv::Mat frame);
 };

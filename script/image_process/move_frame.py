@@ -12,7 +12,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from image_process import ImageProcess
 
-class RotateFrame(ImageProcess):
+class MoveFrame(ImageProcess):
     def __init__(self,
                  name=None,
                  rate=30,
@@ -21,11 +21,11 @@ class RotateFrame(ImageProcess):
                  angle_table=None):
 
         if name is None:
-            name='rotate_frame'
+            name='move_frame'
 
-        super(RotateFrame, self).__init__(name=name,
-                                          rate=rate,
-                                          delta_t_buffer_size=delta_t_buffer_size)
+        super(MoveFrame, self).__init__(name=name,
+                                        rate=rate,
+                                        delta_t_buffer_size=delta_t_buffer_size)
 
         self.frame_angle = frame_angle
         self.angle_resolution = 2**8
@@ -66,39 +66,39 @@ class RotateFrame(ImageProcess):
 
 
 # ======================================================================================================================
-def rotate_frame():
-    rotate_frame = RotateFrame()
+def move_frame():
+    move_frame = MoveFrame()
 
     if len(sys.argv)==3:
         if sys.argv[1] == '-input':
-            rotate_frame.input_frame_subscriber_init(rostopic_name=sys.argv[2])
-            rotate_frame.output_frame_publisher_init()
+            move_frame.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            move_frame.output_frame_publisher_init()
         elif sys.argv[1] == '-output':
-            rotate_frame.output_frame_publisher_init(rostopic_name=sys.argv[2])
-            rotate_frame.input_frame_subscriber_init()
+            move_frame.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            move_frame.input_frame_subscriber_init()
         else:
-            rotate_frame.input_frame_subscriber_init()
-            rotate_frame.output_frame_publisher_init()
+            move_frame.input_frame_subscriber_init()
+            move_frame.output_frame_publisher_init()
     elif len(sys.argv)==5:      
         if sys.argv[1] == '-input':
-            rotate_frame.input_frame_subscriber_init(rostopic_name=sys.argv[2])
-            rotate_frame.output_frame_publisher_init(rostopic_name=sys.argv[4])
+            move_frame.input_frame_subscriber_init(rostopic_name=sys.argv[2])
+            move_frame.output_frame_publisher_init(rostopic_name=sys.argv[4])
         elif sys.argv[1] == '-output':
-            rotate_frame.output_frame_publisher_init(rostopic_name=sys.argv[2])
-            rotate_frame.input_frame_subscriber_init(rostopic_name=sys.argv[4])
+            move_frame.output_frame_publisher_init(rostopic_name=sys.argv[2])
+            move_frame.input_frame_subscriber_init(rostopic_name=sys.argv[4])
         else:
-            rotate_frame.input_frame_subscriber_init()
-            rotate_frame.output_frame_publisher_init()
+            move_frame.input_frame_subscriber_init()
+            move_frame.output_frame_publisher_init()
 
     else:
-        rotate_frame.input_frame_subscriber_init()
-        rotate_frame.output_frame_publisher_init()
+        move_frame.input_frame_subscriber_init()
+        move_frame.output_frame_publisher_init()
     
-    rotate_frame.delta_t_service_init()
-    rotate_frame.main_loop()
+    move_frame.delta_t_service_init()
+    move_frame.main_loop()
 
 if __name__ == '__main__':
     try:
-        rotate_frame()
+        move_frame()
     except rospy.ROSInterruptException:
         pass

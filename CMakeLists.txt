@@ -160,21 +160,21 @@ set_target_properties(image_process PROPERTIES COMPILE_DEFINITIONS "__IMAGE_PROC
 target_link_libraries(image_process ${catkin_LIBRARIES})
 target_link_libraries(image_process ${OpenCV_LIBRARIES})
 
-# add_executable(mono_display 
-#   src/image_process/image_process/ImageProcess.cpp
-#   src/image_process/mono_display/MonoDisplay.cpp  
-#   src/image_process/mono_display.cpp)
-# set_target_properties(mono_display PROPERTIES COMPILE_DEFINITIONS "__MONO_DISPLAY__")
-# target_link_libraries(mono_display ${catkin_LIBRARIES})
-# target_link_libraries(mono_display ${OpenCV_LIBRARIES})
+add_executable(mono_display 
+  src/image_process/image_process/ImageProcess.cpp
+  src/image_process/mono_display/MonoDisplay.cpp  
+  src/image_process/mono_display.cpp)
+set_target_properties(mono_display PROPERTIES COMPILE_DEFINITIONS "__MONO_DISPLAY__")
+target_link_libraries(mono_display ${catkin_LIBRARIES})
+target_link_libraries(mono_display ${OpenCV_LIBRARIES})
 
-# add_executable(mono_vision 
-#   src/image_process/image_process/ImageProcess.cpp
-#   src/image_process/mono_vision/MonoVision.cpp  
-#   src/image_process/mono_vision.cpp)
-# set_target_properties(mono_vision PROPERTIES COMPILE_DEFINITIONS "__MONO_VISION__")
-# target_link_libraries(mono_vision ${catkin_LIBRARIES})
-# target_link_libraries(mono_vision ${OpenCV_LIBRARIES})
+add_executable(mono_vision 
+  src/image_process/image_process/ImageProcess.cpp
+  src/image_process/mono_vision/MonoVision.cpp  
+  src/image_process/mono_vision.cpp)
+set_target_properties(mono_vision PROPERTIES COMPILE_DEFINITIONS "__MONO_VISION__")
+target_link_libraries(mono_vision ${catkin_LIBRARIES})
+target_link_libraries(mono_vision ${OpenCV_LIBRARIES})
 
 add_executable(move_frame 
   src/image_process/image_process/ImageProcess.cpp

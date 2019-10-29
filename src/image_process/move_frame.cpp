@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	std::string name = "move_frame";
 
 	ros::init(argc, argv, name);
-	MoveFrame move_frame(argc, argv, name, 30);
+	MoveFrame move_frame(argc, argv, name);
 	
     if(argc==3)
     {

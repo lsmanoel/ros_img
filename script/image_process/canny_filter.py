@@ -15,24 +15,24 @@ from image_process import ImageProcess
 class CannyFilter(ImageProcess):
     def __init__(self,
                  name=None,
-                 rate=30,
                  delta_t_buffer_size=1000):
 
         if name is None:
             name='canny_filter'
 
-        super(CannyFilter, self).__init__(name=name,
-                                          rate=rate,
-                                          delta_t_buffer_size=delta_t_buffer_size)
-
+        super(CannyFilter, self).__init__(name=name)
+        
+        self.input_frame_type = 'bgr8' 
+        self.output_frame_type = 'mono8'
+        
     # ----------------------------------------------------------------------------------------
+    @staticmethod
     # Main Loop        
-    def main_process(self):
-        frame = self.input_frame.copy()
+    def main_process(frame):
         # **************************
         frame = cv2.Canny(frame, 100, 200)
         # **************************
-        self.output_frame = frame.copy() 
+        return frame 
 
 
 # ======================================================================================================================

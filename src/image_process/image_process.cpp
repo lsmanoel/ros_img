@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 	std::string name = "image_process";
 
 	ros::init(argc, argv, name);
-	ImageProcess image_process(argc, argv, name, 30);
+	ImageProcess image_process(argc, argv, name);
 	
     if(argc==3)
     {

@@ -7,7 +7,7 @@
 int main(int argc, char** argv)
 {
   ROS_INFO("mono_vision_bgr8 start...");
-
+  ROS_INFO("opencv version: %s" , CV_VERSION);
   const int FULL_FRAME_WIDTH = 640;
   const int FULL_FRAME_HEIGHT = 480;
   const int VIEW_FRAME_WIDTH = 640;
@@ -18,21 +18,25 @@ int main(int argc, char** argv)
   if(argv[1] == NULL) 
     return 1;
   ROS_INFO("...");
+  
   // Convert the passed as command line parameter index for the video device to an integer
   std::istringstream video_sourceCmd(argv[1]);
   int video_source;
+
   // Check if it is indeed a number
   if(!(video_sourceCmd >> video_source)) 
     return 1;
   ROS_INFO("...");
   cv::VideoCapture cap(video_source);
+
   // Check if video device can be opened with the given index
   if(!cap.isOpened()) 
     return 1;
   ROS_INFO("...");
+
   // Configure the camera resolution
-  cap.set(0, FULL_FRAME_WIDTH);
-  cap.set(1, FULL_FRAME_HEIGHT);
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, FULL_FRAME_WIDTH);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, FULL_FRAME_HEIGHT);
 
   int rot_angle;
   if(argv[2] == NULL) 

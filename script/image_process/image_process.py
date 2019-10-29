@@ -14,9 +14,8 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class ImageProcess(object):
     def __init__(self,
-                 name=None,
-                 rate=30,
-                 delta_t_buffer_size=1000):      
+                 name=None):
+
         if name is None:
             self.name='image_process'
         else:
@@ -27,23 +26,24 @@ class ImageProcess(object):
 
         rospy.init_node(self.name, anonymous=True)
 
-        self.rate = rate
-        self.rate = rospy.Rate(self.rate)#Hz
-
-        self.delta_t_buffer_size = delta_t_buffer_size
+        self.delta_t_buffer_size = 1000
         self._delta_t = []
         self.delta_t = 0
 
+        self.FULL_FRAME_WIDTH = 640
+        self.FULL_FRAME_HEIGHT = 480
+        self.VIEW_FRAME_WIDTH = 640
+        self.VIEW_FRAME_HEIGHT = 480
+        self.input_frame_type = 'bgr8' 
+        self.output_frame_type = 'bgr8'
+        
         self.bridge = CvBridge()
         self.input_frame = None
         self.input_frame_flag = None
         self.output_frame = None
         self.pub_output = None
         
-        self.FULL_FRAME_WIDTH = 640;
-        self.FULL_FRAME_HEIGHT = 480;
-        self.VIEW_FRAME_WIDTH = 640;
-        self.VIEW_FRAME_HEIGHT = 480;
+
     # ----------------------------------------------------------------------------------------
     # rostopics
     def output_frame_publisher_init(self, rostopic_name=None):
@@ -54,12 +54,12 @@ class ImageProcess(object):
 
     # ----
     def input_frame_callback(self, frame):
-        self.input_frame = self.bridge.imgmsg_to_cv2(frame)
-        self.input_frame_flag = True
+        self.input_frame = self.bridge.imgmsg_to_cv2(frame, self.input_frame_type)
+        self.process_bulk()
 
     def input_frame_subscriber_init(self, rostopic_name=None):
         if rostopic_name is None:
-            rospy.Subscriber(self.name+'_input_frame', Image, self.input_frame_callback)
+            rospy.Subscriber(self.name + '_input_frame', Image, self.input_frame_callback)
         else:
             rospy.Subscriber(rostopic_name, Image, self.input_frame_callback)
 
@@ -79,39 +79,37 @@ class ImageProcess(object):
     @delta_t.setter
     def delta_t(self, value):
         if len(self._delta_t) > self.delta_t_buffer_size:
-            self._delta_t.pop(0)
+            self._delta_t.pop(-1)
         self._delta_t.append(value)
 
     # ----------------------------------------------------------------------------------------
     # Main Loop        
     def main_loop(self):
-        # ------------------------------------------
-        while not rospy.is_shutdown():
-            self.rate.sleep()
-            if self.input_frame is not None and self.input_frame_flag is not None:
-                self.input_frame_flag = None
-                # --------------------------
-                t0 = rospy.get_rostime().nsecs
-                # **************************
-                self.main_process()
-                # **************************         
-                if self.pub_output is not None: 
-                    self.pub_output.publish(self.bridge.cv2_to_imgmsg(self.output_frame))
-                # --------------------------
-                t = rospy.get_rostime().nsecs
-                delta_t = t - t0
-                if delta_t > 0:
-                    self.delta_t = delta_t
+        rospy.spin()
 
-        # ------------------------------------------               
-        print("break")
+    def process_bulk(self):
+        t0 = rospy.get_rostime().nsecs
+        # **************************
+        self.output_frame = self.main_process(self.input_frame)
+        # **************************  
+        t = rospy.get_rostime().nsecs
 
-    def main_process(self):
-        frame = self.input_frame.copy()
+        # --------------------------
+        if self.pub_output is not None:
+            self.pub_output.publish(self.bridge.cv2_to_imgmsg(self.output_frame, self.output_frame_type))
+        
+        delta_t = t - t0
+        if delta_t > 0:
+            self.delta_t = delta_t
+
+    @staticmethod
+    def main_process(frame):
+        print("ImageProcess.main_process()")
         # **************************
         # PROCESS
         # **************************
-        self.output_frame = frame.copy() 
+        print(" a frame was received!")
+        return frame 
         
 
 # ======================================================================================================================

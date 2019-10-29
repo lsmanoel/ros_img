@@ -1,7 +1,7 @@
 #include "StereoVision.h"
 
-StereoVision::StereoVision(int argc, char** argv, std::string name_in, int rate_in)
-	:ImageProcess(argc, argv, name_in, rate_in)
+StereoVision::StereoVision(int argc, char** argv, std::string name_in)
+	:ImageProcess(argc, argv, name_in)
 {
 	input_frame_type = "bgr8";
 	output_frame_type = "mono8";

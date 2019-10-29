@@ -17,11 +17,8 @@ class ImageProcess
 protected:
 	std::string name;
 
-	int rate;
-	bool callback_process_mode; 
 	std_msgs::Int64 t, t0, d_t;
 	const int delta_t_buffer_size = 1000;
-
 	std_msgs::Int64MultiArray _delta_t;
 	// _delta_t.data.clear();
 
@@ -29,21 +26,20 @@ protected:
  	const int FULL_FRAME_HEIGHT = 480;
   	const int VIEW_FRAME_WIDTH = 640;
   	const int VIEW_FRAME_HEIGHT = 480;
-
-	bool frame_flag;
-	cv::Mat input_frame;
-	cv::Mat output_frame;
 	std::string input_frame_type, output_frame_type;
+
+	cv::Mat input_frame, output_frame;
 
   	ros::NodeHandle nh;
  	image_transport::ImageTransport it;
 	image_transport::Publisher pub_output;
+	bool pub_output_flag;
 	image_transport::Subscriber sub_input;
 	sensor_msgs::ImagePtr msg;
 	ros::ServiceServer _delta_t_service;
 
 public:
-	ImageProcess(int argc, char** argv, std::string name_in, int rate_in);
+	ImageProcess(int argc, char** argv, std::string name_in);
 
 	// ----------------------------------------------------------------------------------------
 	// rostopics
@@ -64,8 +60,8 @@ public:
 
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
-	void main_loop();
-	void bulk_process();
+	virtual void main_loop();
+	void process_bulk();
 	virtual cv::Mat main_process(cv::Mat frame);
 
 };

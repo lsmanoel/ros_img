@@ -11,23 +11,23 @@ from image_process import ImageProcess
 
 class MonoDisplay(ImageProcess):
     def __init__(self,
-                 name=None,
-                 rate=30,
-                 delta_t_buffer_size=1000):
+                 name=None):
 
         if name is None:
             name='mono_display'
 
-        super(MonoDisplay, self).__init__(name=name,
-                                          rate=rate,
-                                          delta_t_buffer_size=delta_t_buffer_size)
+        super(MonoDisplay, self).__init__(name=name)
 
     # ----------------------------------------------------------------------------------------
     # Main Loop        
-    def main_process(self):
-        self.output_frame = self.input_frame.copy()
+    def main_loop(self):
+        rospy.spin()
+                
+    # ----------------------------------------------------------------------------------------
+    # Main Loop        
+    def main_process(self, frame):
         # **************************
-        cv2.imshow('mono_display', self.input_frame)
+        cv2.imshow(self.name, frame)
         cv2.waitKey(5)
 
 # ======================================================================================================================

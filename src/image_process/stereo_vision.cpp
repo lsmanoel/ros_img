@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	std::string name = "stereo_vision";
 
 	ros::init(argc, argv, name);
-	StereoVision stereo_vision(argc, argv, name, 30);
+	StereoVision stereo_vision(argc, argv, name);
 	
     if(argc==3)
     {

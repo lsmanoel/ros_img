@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	std::string name = "canny_filter";
 
 	ros::init(argc, argv, name);
-	CannyFilter canny_filter(argc, argv, name, 30);
+	CannyFilter canny_filter(argc, argv, name);
 	
     if(argc==3)
     {

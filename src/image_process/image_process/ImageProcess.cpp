@@ -1,19 +1,16 @@
 #include "ImageProcess.h"
 
-ImageProcess::ImageProcess(int argc, char** argv, std::string name_in, int rate_in)
+ImageProcess::ImageProcess(int argc, char** argv, std::string name_in)
   : it(nh)
 {
 	ROS_INFO("%s init...", name_in.c_str());
 	ROS_INFO("opencv version: %s" , CV_VERSION);
 
 	name = name_in;
-	rate = rate_in;
-
-	frame_flag = false;
-	callback_process_mode = true;
 
 	input_frame_type = "bgr8";
 	output_frame_type = "bgr8";
+	pub_output_flag == true;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -35,16 +32,8 @@ void ImageProcess::input_frame_callback(const sensor_msgs::ImageConstPtr& msg)
 {
 	try
 	{
-		if(callback_process_mode == true)
-		{
-			input_frame = cv_bridge::toCvShare(msg, input_frame_type.c_str())->image;
-			bulk_process();
-		}
-		else
-		{
-			input_frame = cv_bridge::toCvShare(msg, input_frame_type.c_str())->image;
-			frame_flag = true;
-		}
+		input_frame = cv_bridge::toCvShare(msg, input_frame_type.c_str())->image;
+		process_bulk();
 	}
 	catch (cv_bridge::Exception& e)
 	{
@@ -94,29 +83,10 @@ void ImageProcess::delta_t_setter(std_msgs::Int64 d_t)
 // Main Loop
 void ImageProcess::main_loop()
 {
-	if(callback_process_mode == true)
-	{
-		ros::spin();	
-	}
-	else
-	{
-		ros::Rate loop_rate(rate);
-		// --------------------------
-		while (nh.ok())
-		{
-			loop_rate.sleep();
-			ros::spinOnce();
-			if(frame_flag == true)
-			{
-				frame_flag = false;
-				ROS_INFO("a frame was received!");
-			}
-		}
-		// -------------------------- 		
-	}
+	ros::spin();	
 }
 
-void ImageProcess::bulk_process()
+void ImageProcess::process_bulk()
 {
 	t0.data = ros::Time::now().toNSec();
 	// **************************	
@@ -125,9 +95,12 @@ void ImageProcess::bulk_process()
 	t.data = ros::Time::now().toNSec();
 
 	// --------------------------
-	msg = cv_bridge::CvImage(std_msgs::Header(), output_frame_type, output_frame).toImageMsg();
-	pub_output.publish(msg);	
-	
+	if(pub_output_flag == true)
+	{
+		msg = cv_bridge::CvImage(std_msgs::Header(), output_frame_type, output_frame).toImageMsg();
+		pub_output.publish(msg);	
+	}
+
 	d_t.data = t.data - t0.data;
 	if (d_t.data > 0)
 		delta_t_setter(d_t);
@@ -135,9 +108,10 @@ void ImageProcess::bulk_process()
 
 cv::Mat ImageProcess::main_process(cv::Mat frame)
 {
-	ROS_INFO("ImageProcess::main_process()");
+	ROS_INFO("ImageProcess::main_process():");
 	// **************************
 	// PROCESS
 	// **************************
+	ROS_INFO("	a frame was received!");
 	return frame;
 }

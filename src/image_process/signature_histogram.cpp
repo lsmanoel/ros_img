@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	std::string name = "signature_histogram";
 
 	ros::init(argc, argv, name);
-	SignatureHistogram signature_histogram(argc, argv, name, 30);
+	SignatureHistogram signature_histogram(argc, argv, name);
 	
     if(argc==3)
     {
