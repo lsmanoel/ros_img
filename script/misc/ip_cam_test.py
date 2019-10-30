@@ -9,7 +9,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 def ip_cam_test():   
     #video_capture = cv2.VideoCapture('/home/lucas/Videos/driver_1.mp4')
-    video_capture = cv2.VideoCapture('rtsp://admin:admin123@192.168.1.100:554')
+    video_capture = cv2.VideoCapture('rtsp://admin:admin123@10.66.0.11:554/cam/realmonitor?channel=1&subtype=0')
 
     i = 0
     while 1:

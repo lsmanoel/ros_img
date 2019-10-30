@@ -14,32 +14,16 @@ from image_process import ImageProcess
 
 class MoveFrame(ImageProcess):
     def __init__(self,
-                 name=None,
-                 rate=30,
-                 delta_t_buffer_size=1000,
-                 frame_angle=180,
-                 angle_table=None):
+                 name=None):
 
         if name is None:
             name='move_frame'
 
-        super(MoveFrame, self).__init__(name=name,
-                                        rate=rate,
-                                        delta_t_buffer_size=delta_t_buffer_size)
+        super(MoveFrame, self).__init__(name=name)
 
-        self.frame_angle = frame_angle
-        self.angle_resolution = 2**8
-
-        if angle_table is None:
-            self.angle_table = []
-            for i in range(-self.angle_resolution//2, self.angle_resolution//2):
-                angle = (360/self.angle_resolution)*(i)
-                self.angle_table.append(angle)
-            print(len(self.angle_table))
-        else:
-            self.angle_table = angle_table
-
-        self.M_rot = None
+        self.inputQuad = np.zeros((4, 2), dtype = "float32")
+        self.outputQuad = np.zeros((4, 2), dtype = "float32")
+        self.lambda_matrix = np.zeros((self.FULL_FRAME_HEIGHT, self.FULL_FRAME_WIDTH))
 
     # ----------------------------------------------------------------------------------------
     def rotate_frame_process(self, frame, frame_angle, frame_size):
@@ -50,20 +34,38 @@ class MoveFrame(ImageProcess):
 
     # ----------------------------------------------------------------------------------------
     # Main Loop        
-    def main_process(self):
+    def main_process(self, frame):
         frame = self.input_frame.copy()
         # **************************
-        if self.M_rot is None:
-        	self.M_rot = {}
-        	for angle in self.angle_table:
-        	    self.M_rot[angle] = cv2.getRotationMatrix2D((frame.shape[1]//2, frame.shape[0]//2), angle, 1.0)
+
                    
         frame = cv2.warpAffine(frame, self.M_rot[int(self.frame_angle)], (frame.shape[1], frame.shape[0]))
         # --------------------------
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # **************************
-        self.output_frame = frame.copy() 
+        return frame 
 
+    def main_process(self, frame):
+        print("MoveFrame.main_process()")
+        # **************************
+        # PROCESS
+        # The 4 points that select quadilateral on the input , from top-left in clockwise order
+        # These four pts are the sides of the rect box used as input 
+        self.inputQuad[0,:] = np.asarray([-30, -60 ]);
+        self.inputQuad[1,:] = np.asarray([frame.shape[1]+50, -50]);
+        self.inputQuad[2,:] = np.asarray([frame.shape[1]+100, frame.shape[0]+50]);
+        self.inputQuad[3,:] = np.asarray([-50, frame.shape[0]+50]);
+        # The 4 points where the mapping is to be done , from top-left in clockwise order
+        self.outputQuad[0,:] = np.asarray([0, 0]);
+        self.outputQuad[1,:] = np.asarray([frame.shape[1]-1, 0]);
+        self.outputQuad[2,:] = np.asarray([frame.shape[1]-1, frame.shape[0]-1]);
+        self.outputQuad[3,:] = np.asarray([0, frame.shape[0]-1]);
+
+        #Get the Perspective Transform Matrix i.e. lambda_matrix 
+        lambda_matrix = cv2.getPerspectiveTransform(self.inputQuad, self.outputQuad);
+        frame = cv2.warpPerspective(frame, lambda_matrix, (self.FULL_FRAME_WIDTH, self.FULL_FRAME_HEIGHT));
+        # **************************
+        return frame 
 
 # ======================================================================================================================
 def move_frame():

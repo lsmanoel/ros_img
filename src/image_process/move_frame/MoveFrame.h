@@ -2,12 +2,14 @@
 
 class MoveFrame: public ImageProcess
 {
-	int rotation_angle;
-	// Rotation Matrix
-	cv::Point2f src_center;
-	cv::Mat rotation_matrix;
-	//ROI
-	cv::Rect roi_size;
+    // Input Quadilateral or Image plane coordinates
+    cv::Point2f inputQuad[4]; 
+    // Output Quadilateral or World plane coordinates
+    cv::Point2f outputQuad[4];
+    // Lambda Matrix
+    cv::Mat lambda_matrix;
+
+
 public:
 	MoveFrame(int argc, char** argv, std::string name_in);
 
