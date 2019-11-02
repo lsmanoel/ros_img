@@ -43,7 +43,6 @@ void MonoVision::main_loop()
 		loop_rate.sleep();
 		process_bulk();
 		ros::spinOnce();
-
 	}
 	// -------------------------- 		
 }

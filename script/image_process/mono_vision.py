@@ -24,7 +24,7 @@ class MonoVision(ImageProcess):
         super(MonoVision, self).__init__(name=name)
 
         self.delta_t_buffer_size = delta_t_buffer_size
-        self.loop_rate = rospy.Rate(rate)
+        self.rate = rate
         self.video_source = 0
 
     def init_init_video_capture(self):
@@ -36,9 +36,11 @@ class MonoVision(ImageProcess):
     # ----------------------------------------------------------------------------------------
     # Main Loop 
     def main_loop(self):
+        rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
-            self.loop_rate.sleep()
+            rate.sleep()
             self.process_bulk()
+            rospy.spinOnce()
 
     def main_process(self, frame):
         print("MonoVision.main_process()")
