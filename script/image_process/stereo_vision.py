@@ -56,26 +56,6 @@ class StereoVision(ImageProcess):
 
         return frame_output, frame_buffer, frame_pt
 
-    @property
-    def video_source_L(self):
-        return self._video_source_L
-
-    @video_source_L.setter
-    def video_source_L(self, value):
-        self._video_source_L = int(value)
-        self.video_capture_L = cv2.VideoCapture(int(value))
-        self.video_capture_L.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG")) 
-
-    @property
-    def video_source_R(self):
-        return self._video_source_R
-
-    @video_source_R.setter
-    def video_source_R(self, value):
-        self._video_source_R = int(value)
-        self.video_capture_R = cv2.VideoCapture(int(value))
-        self.video_capture_R.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG")) 
-
     # ----------------------------------------------------------------------------------------
     # Puts a centered crosshairs on the frame 
     @staticmethod
@@ -97,6 +77,27 @@ class StereoVision(ImageProcess):
     @staticmethod
     def histogram(frame):
         return np.histogram(frame.flatten(), 256, [0, 256])[0]
+
+    # ----------------------------------------------------------------------------------------
+    @property
+    def video_source_L(self):
+        return self._video_source_L
+
+    @video_source_L.setter
+    def video_source_L(self, value):
+        self._video_source_L = int(value)
+        self.video_capture_L = cv2.VideoCapture(int(value))
+        self.video_capture_L.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG")) 
+
+    @property
+    def video_source_R(self):
+        return self._video_source_R
+
+    @video_source_R.setter
+    def video_source_R(self, value):
+        self._video_source_R = int(value)
+        self.video_capture_R = cv2.VideoCapture(int(value))
+        self.video_capture_R.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG")) 
  
     # ----------------------------------------------------------------------------------------
     # rostopics
@@ -119,9 +120,13 @@ class StereoVision(ImageProcess):
     def main_loop(self):
         print("StereoVision.main_loop()")
 
-        mm_L_buffer, mm_L_pt = StereoVision.init_moving_average((480, 640), buffer_size = 3)
-        mm_R_buffer, mm_R_pt = StereoVision.init_moving_average((480, 640), buffer_size = 3)
-        mm_stereo_buffer, mm_stereo_pt = StereoVision.init_moving_average((480, 640), buffer_size = 5)
+        frame_L_acc = np.zeros((480, 640))
+        frame_R_acc = np.zeros((480, 640))
+        frame_stereo_acc = np.zeros((480, 640))
+
+        mm_L_buffer, mm_L_pt = StereoVision.init_moving_average((480, 640), buffer_size = 10)
+        mm_R_buffer, mm_R_pt = StereoVision.init_moving_average((480, 640), buffer_size = 10)
+        mm_stereo_buffer, mm_stereo_pt = StereoVision.init_moving_average((480, 640), buffer_size = 10)
 
         stereo = cv2.StereoBM_create(numDisparities=32, blockSize=25)
 
@@ -155,15 +160,22 @@ class StereoVision(ImageProcess):
             ret, frame_L = self.video_capture_L.read()
             ret, frame_R = self.video_capture_R.read()
 
+            frame_L = np.float32(frame_L)
+            frame_R = np.float32(frame_R)
             frame_L = cv2.warpAffine(frame_L, M_rot_L, FRAME_SIZE)  
             frame_R = cv2.warpAffine(frame_R, M_rot_R, FRAME_SIZE)
 
             frame_L = cv2.cvtColor(frame_L, cv2.COLOR_BGR2GRAY)
             frame_R = cv2.cvtColor(frame_R, cv2.COLOR_BGR2GRAY)
 
-            frame_L, mm_L_buffer, mm_L_pt = self.moving_average(frame_L, mm_L_buffer, mm_L_pt)
-            frame_R, mm_R_buffer, mm_R_pt = self.moving_average(frame_R, mm_R_buffer, mm_R_pt)
+            # frame_L, mm_L_buffer, mm_L_pt = self.moving_average(frame_L, mm_L_buffer, mm_L_pt)
+            # frame_R, mm_R_buffer, mm_R_pt = self.moving_average(frame_R, mm_R_buffer, mm_R_pt)
+            frame_L_acc = cv2.accumulateWeighted(frame_L, frame_L_acc, 0.33)
+            frame_R_acc = cv2.accumulateWeighted(frame_R, frame_R_acc, 0.33)
+            frame_L = frame_L_acc.copy()
+            frame_R = frame_R_acc.copy()    
 
+            
             frame_L = cv2.GaussianBlur(frame_L, 
                                        (3, 3), 
                                        0)
@@ -176,9 +188,12 @@ class StereoVision(ImageProcess):
             frame_stereo = cv2.GaussianBlur(frame_stereo, 
                                             (3, 3), 
                                             0)
+            frame_stereo = np.float32(frame_stereo)
 
-            frame_stereo, mm_stereo_buffer, mm_stereo_pt = self.moving_average(frame_stereo, mm_stereo_buffer, mm_stereo_pt)
-            
+            # frame_stereo, mm_stereo_buffer, mm_stereo_pt = self.moving_average(frame_stereo, mm_stereo_buffer, mm_stereo_pt)
+            frame_stereo_acc = cv2.accumulateWeighted(frame_stereo, frame_stereo_acc, 0.1)
+            frame_stereo = frame_stereo_acc.copy()
+
             frame_stereo_raw = frame_stereo.copy()
             # -----------------------------------------------------------------------------------------------------------------------
             histogram_size = [10, 220]

@@ -200,13 +200,13 @@ target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
 # target_link_libraries(signature_histogram ${catkin_LIBRARIES})
 # target_link_libraries(signature_histogram ${OpenCV_LIBRARIES})
 
-# add_executable(stereo_vision 
-#   src/image_process/image_process/ImageProcess.cpp
-#   src/image_process/stereo_vision/StereoVision.cpp  
-#   src/image_process/stereo_vision.cpp)
-# set_target_properties(stereo_vision PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
-# target_link_libraries(stereo_vision ${catkin_LIBRARIES})
-# target_link_libraries(stereo_vision ${OpenCV_LIBRARIES})
+add_executable(stereo_vision 
+  src/image_process/image_process/ImageProcess.cpp
+  src/image_process/stereo_vision/StereoVision.cpp  
+  src/image_process/stereo_vision.cpp)
+set_target_properties(stereo_vision PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
+target_link_libraries(stereo_vision ${catkin_LIBRARIES})
+target_link_libraries(stereo_vision ${OpenCV_LIBRARIES})
 
 #-------------------------------------------------------------------------------------------------------
 ## Specify additional locations of header files

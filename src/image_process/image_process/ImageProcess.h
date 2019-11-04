@@ -43,7 +43,7 @@ public:
 
 	// ----------------------------------------------------------------------------------------
 	// rostopics
-	void output_frame_publisher_init(std::string rostopic_name/*="None"*/);
+	virtual void output_frame_publisher_init(std::string rostopic_name/*="None"*/);
 
 	// ----
 	void input_frame_callback(const sensor_msgs::ImageConstPtr& msg);
