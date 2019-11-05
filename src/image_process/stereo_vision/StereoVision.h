@@ -2,8 +2,6 @@
 
 class StereoVision: public ImageProcess
 {
-	cv::StereoMatcher stereo;
-
 	int video_L_source, video_R_source;
 	cv::VideoCapture cap_L, cap_R;
 	int rate;
@@ -17,6 +15,8 @@ class StereoVision: public ImageProcess
 public:
 	StereoVision(int argc, char** argv, std::string name_in);
 
+	cv::Mat crosshairs(cv::Mat frama, cv::Scalar color);
+	int histogram_max_value(cv::Mat frame);
 	// ----------------------------------------------------------------------------------------
 	// rostopics
 	void output_frame_publisher_init(std::string rostopic_name/*="None"*/);
@@ -31,5 +31,4 @@ public:
 	// ----------------------------------------------------------------------------------------
 	// Main Loop
 	void main_loop();
-	cv::Mat main_process(cv::Mat frame);
 };

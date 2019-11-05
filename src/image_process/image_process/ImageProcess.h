@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <sstream> // for converting the command line parameter to integer
 #include <list>
@@ -9,6 +10,7 @@
 #include "ros_img/return_data.h" 
 #include <iostream>
 #include <std_msgs/Int64.h>
+#include <std_msgs/UInt8.h>
 #include "std_msgs/Int64MultiArray.h"
 // using namespace std;
 

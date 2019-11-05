@@ -162,11 +162,15 @@ class StereoVision(ImageProcess):
 
             frame_L = np.float32(frame_L)
             frame_R = np.float32(frame_R)
-            frame_L = cv2.warpAffine(frame_L, M_rot_L, FRAME_SIZE)  
-            frame_R = cv2.warpAffine(frame_R, M_rot_R, FRAME_SIZE)
 
             frame_L = cv2.cvtColor(frame_L, cv2.COLOR_BGR2GRAY)
             frame_R = cv2.cvtColor(frame_R, cv2.COLOR_BGR2GRAY)
+
+            frame_L = cv2.GaussianBlur(frame_L, (3, 3), 0)
+            frame_R = cv2.GaussianBlur(frame_R, (3, 3), 0)
+            frame_L = cv2.warpAffine(frame_L, M_rot_L, FRAME_SIZE)  
+            frame_R = cv2.warpAffine(frame_R, M_rot_R, FRAME_SIZE)
+
 
             # frame_L, mm_L_buffer, mm_L_pt = self.moving_average(frame_L, mm_L_buffer, mm_L_pt)
             # frame_R, mm_R_buffer, mm_R_pt = self.moving_average(frame_R, mm_R_buffer, mm_R_pt)
@@ -176,12 +180,6 @@ class StereoVision(ImageProcess):
             frame_R = frame_R_acc.copy()    
 
             
-            frame_L = cv2.GaussianBlur(frame_L, 
-                                       (3, 3), 
-                                       0)
-            frame_R = cv2.GaussianBlur(frame_R, 
-                                       (3, 3), 
-                                       0)
 
             frame_stereo = stereo.compute(np.uint8(frame_L), np.uint8(frame_R))
             frame_stereo = cv2.convertScaleAbs(frame_stereo)
@@ -191,12 +189,12 @@ class StereoVision(ImageProcess):
             frame_stereo = np.float32(frame_stereo)
 
             # frame_stereo, mm_stereo_buffer, mm_stereo_pt = self.moving_average(frame_stereo, mm_stereo_buffer, mm_stereo_pt)
-            frame_stereo_acc = cv2.accumulateWeighted(frame_stereo, frame_stereo_acc, 0.1)
+            frame_stereo_acc = cv2.accumulateWeighted(frame_stereo, frame_stereo_acc, 0.2)
             frame_stereo = frame_stereo_acc.copy()
 
             frame_stereo_raw = frame_stereo.copy()
             # -----------------------------------------------------------------------------------------------------------------------
-            histogram_size = [10, 220]
+            histogram_size = [10, 100]
             # n_grid = [(FRAME_SIZE[0]//(2*histogram_size[0]))-1, (FRAME_SIZE[1]//(2*histogram_size[1]))-1]
             n_grid = [1, 1]
 
@@ -204,8 +202,7 @@ class StereoVision(ImageProcess):
                 histogram = self.histogram(frame_stereo[FRAME_CENTER[1]-histogram_size[1]//2:FRAME_CENTER[1]+histogram_size[1]//2,
                                                         j*histogram_size[0]+FRAME_CENTER[0]-histogram_size[0]//2:j*histogram_size[0]+FRAME_CENTER[0]+histogram_size[0]//2,])
 
-                frame_stereo[FRAME_CENTER[1]-histogram_size[1]//2:FRAME_CENTER[1]+histogram_size[1]//2,
-                             j*histogram_size[0]+FRAME_CENTER[0]-histogram_size[0]//2:j*histogram_size[0]+FRAME_CENTER[0]+histogram_size[0]//2] = np.argmax(histogram)
+            histogram_max_value = int(np.argmax(histogram))
 
             # -----------------------------------------------------------------------------------------------------------------------
             frame_L = cv2.cvtColor(np.uint8(frame_L), cv2.COLOR_GRAY2BGR);
@@ -215,9 +212,23 @@ class StereoVision(ImageProcess):
 
             font = cv2.FONT_HERSHEY_SIMPLEX
             cv2.putText(frame_stereo, 
-                        str(frame_stereo[FRAME_CENTER[1], FRAME_CENTER[0]][0]), 
+                        str(histogram_max_value), 
                         (FRAME_CENTER[1]+120, FRAME_CENTER[0]+130), 
                         font, 3, (0, 0, 255), 2, cv2.LINE_AA)
+
+
+            frame_L = self.crosshairs(frame_L)
+            frame_R = self.crosshairs(frame_R)
+            frame_stereo = self.crosshairs(frame_stereo)
+
+            cv2.rectangle(frame_stereo, 
+                      (FRAME_CENTER[0]-histogram_size[0]*n_grid[0]+histogram_size[0]//2, 
+                       FRAME_CENTER[1]-histogram_size[1]*n_grid[1]+histogram_size[1]//2), 
+                      (FRAME_CENTER[0]+histogram_size[0]*n_grid[0]-histogram_size[0]//2, 
+                       FRAME_CENTER[1]+histogram_size[1]*n_grid[1]-histogram_size[1]//2), 
+                      (histogram_max_value, histogram_max_value, histogram_max_value),
+                      cv2.FILLED, 
+                      1)
 
             cv2.rectangle(frame_stereo, 
                           (FRAME_CENTER[0]-histogram_size[0]*n_grid[0]+histogram_size[0]//2, 
@@ -225,11 +236,7 @@ class StereoVision(ImageProcess):
                           (FRAME_CENTER[0]+histogram_size[0]*n_grid[0]-histogram_size[0]//2, 
                            FRAME_CENTER[1]+histogram_size[1]*n_grid[1]-histogram_size[1]//2), 
                           (0, 0, 255), 
-                          2)
-
-            frame_L = self.crosshairs(frame_L)
-            frame_R = self.crosshairs(frame_R)
-            frame_stereo = self.crosshairs(frame_stereo)
+                          1)
 
             # cv2.imshow(self.name + '_L', frame_L)
             # cv2.imshow(self.name + '_R', frame_R)
@@ -241,7 +248,7 @@ class StereoVision(ImageProcess):
             self.pub_R_output.publish(self.bridge.cv2_to_imgmsg(frame_R, self.output_frame_type))
             self.pub_depth_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo, self.output_frame_type))
             self.pub_depth_raw_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo_raw, self.output_frame_type))
-            self.pub_histogram.publish(int(np.argmax(histogram)))
+            self.pub_histogram.publish(histogram_max_value)
             # **************************  
             t = rospy.get_rostime().nsecs
 

@@ -30,8 +30,8 @@ int main(int argc, char** argv)
             if(!(video_R_sourceCmd >> video_R_source)) 
                 return 0;
 
-            mono_vision.set_video_L_source(video_L_source);
-            mono_vision.set_video_R_source(video_R_source);
+            stereo_vision.set_video_L_source(video_L_source);
+            stereo_vision.set_video_R_source(video_R_source);
 
             stereo_vision.output_frame_publisher_init("None");
         }
@@ -65,8 +65,8 @@ int main(int argc, char** argv)
             if(!(video_R_sourceCmd >> video_R_source)) 
                 return 0;
 
-            mono_vision.set_video_L_source(video_L_source);
-            mono_vision.set_video_R_source(video_R_source);
+            stereo_vision.set_video_L_source(video_L_source);
+            stereo_vision.set_video_R_source(video_R_source);
 
             stereo_vision.output_frame_publisher_init(argv[5]);
         }
@@ -85,8 +85,8 @@ int main(int argc, char** argv)
             if(!(video_R_sourceCmd >> video_R_source)) 
                 return 0;
 
-            mono_vision.set_video_L_source(video_L_source);
-            mono_vision.set_video_R_source(video_R_source);
+            stereo_vision.set_video_L_source(video_L_source);
+            stereo_vision.set_video_R_source(video_R_source);
 
         }
         else
