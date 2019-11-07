@@ -76,7 +76,7 @@ class KinectVision(ImageProcess):
         # frame_stereo = self.frame_stereo_acc.copy()
         frame_stereo_raw = np.uint8(data)
 
-        frame_stereo_raw = cv2.cvtColor(frame_stereo_raw, cv2.COLOR_RGB2BGR)
+        # frame_stereo_raw = cv2.cvtColor(frame_stereo_raw, cv2.COLOR_RGB2BGR)
 
         frame_stereo = frame_stereo_raw.copy()
 
