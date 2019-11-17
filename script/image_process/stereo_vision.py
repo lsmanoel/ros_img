@@ -26,6 +26,10 @@ class StereoVision(ImageProcess):
         self.rate = rate
         self.stereo = cv2.StereoBM_create(numDisparities=32, blockSize=25)
 
+        self.histogram_t_buffer_size = 5
+        self._histogram_t = []
+        self.histogram_t = 0
+
     # ----------------------------------------------------------------------------------------
     # Moving Average Filter apply along the time axis
     # Order = buffer_size
@@ -77,6 +81,16 @@ class StereoVision(ImageProcess):
     @staticmethod
     def histogram(frame):
         return np.histogram(frame.flatten(), 256, [0, 256])[0]
+
+    @property
+    def histogram_t(self):
+        return int(np.argmax(self.histogram(np.asarray(self._histogram_t))))
+
+    @histogram_t.setter
+    def histogram_t(self, value):
+        if len(self._histogram_t) > self.histogram_t_buffer_size:
+            self._histogram_t.pop(0)
+        self._histogram_t.append(value)
 
     # ----------------------------------------------------------------------------------------
     @property
@@ -174,10 +188,10 @@ class StereoVision(ImageProcess):
 
             # frame_L, mm_L_buffer, mm_L_pt = self.moving_average(frame_L, mm_L_buffer, mm_L_pt)
             # frame_R, mm_R_buffer, mm_R_pt = self.moving_average(frame_R, mm_R_buffer, mm_R_pt)
-            frame_L_acc = cv2.accumulateWeighted(frame_L, frame_L_acc, 0.33)
-            frame_R_acc = cv2.accumulateWeighted(frame_R, frame_R_acc, 0.33)
-            frame_L = frame_L_acc.copy()
-            frame_R = frame_R_acc.copy()    
+            #frame_L_acc = cv2.accumulateWeighted(frame_L, frame_L_acc, 0.33)
+            #frame_R_acc = cv2.accumulateWeighted(frame_R, frame_R_acc, 0.33)
+            #frame_L = frame_L_acc.copy()
+            #frame_R = frame_R_acc.copy()    
 
             
 
@@ -188,13 +202,13 @@ class StereoVision(ImageProcess):
                                             0)
             frame_stereo = np.float32(frame_stereo)
 
-            # frame_stereo, mm_stereo_buffer, mm_stereo_pt = self.moving_average(frame_stereo, mm_stereo_buffer, mm_stereo_pt)
+            frame_stereo, mm_stereo_buffer, mm_stereo_pt = self.moving_average(frame_stereo, mm_stereo_buffer, mm_stereo_pt)
             frame_stereo_acc = cv2.accumulateWeighted(frame_stereo, frame_stereo_acc, 0.2)
             frame_stereo = frame_stereo_acc.copy()
 
             frame_stereo_raw = frame_stereo.copy()
             # -----------------------------------------------------------------------------------------------------------------------
-            histogram_size = [10, 100]
+            histogram_size = [100, 100]
             # n_grid = [(FRAME_SIZE[0]//(2*histogram_size[0]))-1, (FRAME_SIZE[1]//(2*histogram_size[1]))-1]
             n_grid = [1, 1]
 
@@ -203,6 +217,11 @@ class StereoVision(ImageProcess):
                                                         j*histogram_size[0]+FRAME_CENTER[0]-histogram_size[0]//2:j*histogram_size[0]+FRAME_CENTER[0]+histogram_size[0]//2,])
 
             histogram_max_value = int(np.argmax(histogram))
+
+            print('histogram_max_value:', histogram_max_value)    
+            self.histogram_t = histogram_max_value
+            histogram_max_value = self.histogram_t
+            print('histogram_t:', histogram_max_value)
 
             # -----------------------------------------------------------------------------------------------------------------------
             frame_L = cv2.cvtColor(np.uint8(frame_L), cv2.COLOR_GRAY2BGR);

@@ -34,6 +34,14 @@ class KinectVision(ImageProcess):
         self._histogram_t = []
         self.histogram_t = 0
 
+        self.histogram_t_buffer_size_L = 10
+        self._histogram_t_L = []
+        self.histogram_t_L = 0
+        
+        self.histogram_t_buffer_size_R = 10
+        self._histogram_t_R = []
+        self.histogram_t_R = 0
+
     # ----------------------------------------------------------------------------------------
     # Puts a centered crosshairs on the frame 
     @staticmethod
@@ -56,6 +64,39 @@ class KinectVision(ImageProcess):
     def histogram(frame):
         return np.histogram(frame.flatten(), 256, [0, 256])[0]
 
+    def draw_roi(self, frame, roi_size, roi_pos=(0, 0), filled_roi=True, roi_color=None):
+        roi = ((roi_pos[1]+frame.shape[1]//2-roi_size[1]//2, roi_pos[0]+frame.shape[0]//2-roi_size[0]//2),
+               (roi_pos[1]+frame.shape[1]//2+roi_size[1]//2, roi_pos[0]+frame.shape[0]//2+roi_size[0]//2))
+
+        if roi_color is None:
+            data_roi = frame[roi_pos[0]+frame.shape[0]//2-roi_size[0]//2:roi_pos[0]+frame.shape[0]//2+roi_size[0]//2,
+                             roi_pos[1]+frame.shape[1]//2-roi_size[1]//2:roi_pos[1]+frame.shape[1]//2+roi_size[1]//2]
+            data_roi_max = int(np.argmax(self.histogram(data_roi)))
+            roi_color = (data_roi_max, data_roi_max, data_roi_max)
+
+        if filled_roi is True:
+            cv2.rectangle(frame, 
+                          roi[0],
+                          roi[1], 
+                          roi_color,
+                          cv2.FILLED, 
+                          1)
+
+        cv2.rectangle(frame, 
+                      roi[0],
+                      roi[1], 
+                      (0, 0, 255), 
+                      1)
+
+        return frame
+
+    def histogram_xy(self, frame, histogram_size, histogram_pos=(0, 0)):
+        histogram = self.histogram(frame[histogram_pos[0]+frame.shape[0]//2-histogram_size[0]//2:
+                                         histogram_pos[0]+frame.shape[0]//2+histogram_size[0]//2,
+                                         histogram_pos[1]+frame.shape[1]//2-histogram_size[1]//2:
+                                         histogram_pos[1]+frame.shape[1]//2+histogram_size[1]//2])
+        return histogram
+
     @property
     def histogram_t(self):
         return int(np.argmax(self.histogram(np.asarray(self._histogram_t))))
@@ -66,71 +107,100 @@ class KinectVision(ImageProcess):
             self._histogram_t.pop(0)
         self._histogram_t.append(value)
 
+    @property
+    def histogram_t_L(self):
+        return int(np.argmax(self.histogram(np.asarray(self._histogram_t_L))))
+
+    @histogram_t_L.setter
+    def histogram_t_L(self, value):
+        if len(self._histogram_t_L) > self.histogram_t_buffer_size_L:
+            self._histogram_t_L.pop(0)
+        self._histogram_t_L.append(value)
+
+    @property
+    def histogram_t_R(self):
+        return int(np.argmax(self.histogram(np.asarray(self._histogram_t_R))))
+
+    @histogram_t_R.setter
+    def histogram_t_R(self, value):
+        if len(self._histogram_t_R) > self.histogram_t_buffer_size_R:
+            self._histogram_t_R.pop(0)
+        self._histogram_t_R.append(value)
+
     # ----------------------------------------------------------------------------------------
     # Kinect
     def display_depth(self, dev, data, timestamp):
         t0 = rospy.get_rostime().nsecs
+
         # **************************
-        # frame_stereo = np.float32(data)
-        # self.frame_stereo_acc = cv2.accumulateWeighted(frame_stereo, self.frame_stereo_acc, 0.5)
-        # frame_stereo = self.frame_stereo_acc.copy()
-        frame_stereo_raw = np.uint8(data)
-
-        # frame_stereo_raw = cv2.cvtColor(frame_stereo_raw, cv2.COLOR_RGB2BGR)
-
+        frame_stereo = np.float32(data)
+        frame_stereo_raw = np.uint8(frame_stereo)
         frame_stereo = frame_stereo_raw.copy()
+        print(frame_stereo.shape)
 
         # -----------------------------------------------------------------------------------------------------------------------
-        histogram_size = [10, 100]
-        # n_grid = [(FRAME_SIZE[0]//(2*histogram_size[0]))-1, (FRAME_SIZE[1]//(2*histogram_size[1]))-1]
-        n_grid = [1, 1]
-
-        for j in range(1-n_grid[0], n_grid[0]):
-            histogram = self.histogram(frame_stereo[240-histogram_size[1]//2:240+histogram_size[1]//2,
-                                                    j*histogram_size[0]+320-histogram_size[0]//2:j*histogram_size[0]+320+histogram_size[0]//2])
-
-        histogram_max_value = int(np.argmax(histogram))  
-
-        print('histogram_max_value:', histogram_max_value)    
-        self.histogram_t = histogram_max_value
+        # Center
+        histogram_size = [100, 10]
+        self.histogram_t = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size)))     
         histogram_max_value = self.histogram_t
-        print('histogram_t:', histogram_max_value)
+
+        # -----------------------------------------------------------------------------------------------------------------------
+        # Left
+        histogram_size_L = [100, 10]
+        self.histogram_t_L = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size_L, histogram_pos=(0, -100))))    
+        histogram_max_value_L = self.histogram_t_L
+
+        # -----------------------------------------------------------------------------------------------------------------------
+        # Right
+        histogram_size_R = [100, 10]
+        self.histogram_t_R = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size_R, histogram_pos=(0, 100))))
+        histogram_max_value_R = self.histogram_t_R
+
         # -----------------------------------------------------------------------------------------------------------------------
         frame_stereo = cv2.cvtColor(np.uint8(frame_stereo), cv2.COLOR_GRAY2BGR);
         frame_stereo_raw = cv2.cvtColor(np.uint8(frame_stereo_raw), cv2.COLOR_GRAY2BGR);
-        
+       
+        frame_stereo = self.crosshairs(frame_stereo)
+
+        frame_stereo = self.draw_roi(frame_stereo, 
+                                     histogram_size, 
+                                     roi_color=(histogram_max_value, histogram_max_value, histogram_max_value))
+
+        frame_stereo = self.draw_roi(frame_stereo, 
+                                     histogram_size_L,
+                                     roi_pos =(0, -100), 
+                                     roi_color=(histogram_max_value_L, histogram_max_value_L, histogram_max_value_L))
+
+        frame_stereo = self.draw_roi(frame_stereo, 
+                                     histogram_size_R,
+                                     roi_pos =(0, 100), 
+                                     roi_color=(histogram_max_value_R, histogram_max_value_R, histogram_max_value_R))
+
+
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(frame_stereo, 
                     str(histogram_max_value), 
-                    (240+120, 320+130), 
+                    (frame_stereo.shape[0]//2+200, frame_stereo.shape[1]//2+130), 
                     font, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
-        
-        frame_stereo = self.crosshairs(frame_stereo)
+        cv2.putText(frame_stereo, 
+                    str(histogram_max_value_L), 
+                    (frame_stereo.shape[0]//2, frame_stereo.shape[1]//2+130), 
+                    font, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
-        cv2.rectangle(frame_stereo, 
-                  (320-histogram_size[0]*n_grid[0]+histogram_size[0]//2, 
-                   240-histogram_size[1]*n_grid[1]+histogram_size[1]//2), 
-                  (320+histogram_size[0]*n_grid[0]-histogram_size[0]//2, 
-                   240+histogram_size[1]*n_grid[1]-histogram_size[1]//2), 
-                  (histogram_max_value, histogram_max_value, histogram_max_value),
-                  cv2.FILLED, 
-                  1)
-
-        cv2.rectangle(frame_stereo, 
-                      (320-histogram_size[0]*n_grid[0]+histogram_size[0]//2, 
-                       240-histogram_size[1]*n_grid[1]+histogram_size[1]//2), 
-                      (320+histogram_size[0]*n_grid[0]-histogram_size[0]//2, 
-                       240+histogram_size[1]*n_grid[1]-histogram_size[1]//2), 
-                      (0, 0, 255), 
-                      1)
+        cv2.putText(frame_stereo, 
+                    str(histogram_max_value_R), 
+                    (frame_stereo.shape[0]//2-200, frame_stereo.shape[1]//2+130), 
+                    font, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
         self.pub_depth_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo, self.output_frame_type))
         self.pub_depth_raw_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo_raw, self.output_frame_type))
         self.pub_histogram.publish(histogram_max_value)
+        self.pub_histogram_L.publish(histogram_max_value_L)
+        self.pub_histogram_R.publish(histogram_max_value_R)
+
         # **************************  
         t = rospy.get_rostime().nsecs
-
         delta_t = t - t0
         if delta_t > 0:
             self.delta_t = delta_t
@@ -141,7 +211,8 @@ class KinectVision(ImageProcess):
         frame_L = self.crosshairs(frame_L)
         self.pub_L_output.publish(self.bridge.cv2_to_imgmsg(data, self.output_frame_type))
 
-    def body(self, *args):
+    def body(self, dev, ctx):
+        freenect.set_tilt_degs(dev, 0)
         if rospy.is_shutdown():
             raise freenect.Kill
  
@@ -154,12 +225,16 @@ class KinectVision(ImageProcess):
             self.pub_depth_output = rospy.Publisher(self.name + '_output_frame/depth', Image, queue_size=10)
             self.pub_depth_raw_output = rospy.Publisher(self.name + '_output_frame/depth_raw', Image, queue_size=10)
             self.pub_histogram = rospy.Publisher(self.name + '_central_depth_histogram', UInt8, queue_size=10)
+            self.pub_histogram_L = rospy.Publisher(self.name + '_central_depth_histogram_L', UInt8, queue_size=10)
+            self.pub_histogram_R = rospy.Publisher(self.name + '_central_depth_histogram_R', UInt8, queue_size=10)
         else:
             self.pub_L_output = rospy.Publisher(rostopic_name + '/L', Image, queue_size=10)
             self.pub_R_output = rospy.Publisher(rostopic_name + '/R', Image, queue_size=10)
             self.pub_depth_output = rospy.Publisher(rostopic_name + '/depth', Image, queue_size=10)
             self.pub_depth_raw_output = rospy.Publisher(rostopic_name + '/depth_raw', Image, queue_size=10)
             self.pub_histogram = rospy.Publisher(rostopic_name + '_central_depth_histogram', UInt8, queue_size=10)
+            self.pub_histogram_L = rospy.Publisher(rostopic_name + '_central_depth_histogram_L', UInt8, queue_size=10)
+            self.pub_histogram_R = rospy.Publisher(rostopic_name + '_central_depth_histogram_R', UInt8, queue_size=10)
 
     # ----------------------------------------------------------------------------------------
     # Main Loop 

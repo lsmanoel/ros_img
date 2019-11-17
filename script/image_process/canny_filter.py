@@ -14,8 +14,7 @@ from image_process import ImageProcess
 
 class CannyFilter(ImageProcess):
     def __init__(self,
-                 name=None,
-                 delta_t_buffer_size=1000):
+                 name=None):
 
         if name is None:
             name='canny_filter'

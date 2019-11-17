@@ -118,6 +118,10 @@ catkin_package(
 ###########
 ## Build ##
 ###########
+include_directories (src/image_process/image_process/kinect_vision)
+
+find_package(libfreenect REQUIRED)
+include_directories(${FREENECT_INCLUDE_DIRS})
 
 # include(/home/lucas/OpenCV_installation/OpenCV-master/lib/cmake/opencv4/OpenCVConfig.cmake)
 find_package(OpenCV)
@@ -200,11 +204,20 @@ target_link_libraries(canny_filter ${OpenCV_LIBRARIES})
 # target_link_libraries(signature_histogram ${catkin_LIBRARIES})
 # target_link_libraries(signature_histogram ${OpenCV_LIBRARIES})
 
+add_executable(kinect_vision 
+  src/image_process/image_process/ImageProcess.cpp
+  src/image_process/kinect_vision/KinectVision.cpp  
+  src/image_process/kinect_vision.cpp)
+set_target_properties(kinect_vision PROPERTIES COMPILE_DEFINITIONS "__KINECT_VISION__")
+target_link_libraries(kinect_vision ${catkin_LIBRARIES})
+target_link_libraries(kinect_vision ${OpenCV_LIBRARIES})
+target_link_libraries(kinect_vision ${FREENECT_LIBRARIES})
+
 add_executable(stereo_vision 
   src/image_process/image_process/ImageProcess.cpp
   src/image_process/stereo_vision/StereoVision.cpp  
   src/image_process/stereo_vision.cpp)
-set_target_properties(stereo_vision PROPERTIES COMPILE_DEFINITIONS "__SIGNATURE_HISTOGRAM__")
+set_target_properties(stereo_vision PROPERTIES COMPILE_DEFINITIONS "__STEREO_VISION__")
 target_link_libraries(stereo_vision ${catkin_LIBRARIES})
 target_link_libraries(stereo_vision ${OpenCV_LIBRARIES})
 
