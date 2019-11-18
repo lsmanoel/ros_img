@@ -157,8 +157,8 @@ class KinectVision(ImageProcess):
         # histogram_max_value_R = self.histogram_t_R
 
         # # -----------------------------------------------------------------------------------------------------------------------
-        # frame_stereo = cv2.cvtColor(np.uint8(frame_stereo), cv2.COLOR_GRAY2BGR);
-        # frame_stereo_raw = cv2.cvtColor(np.uint8(frame_stereo_raw), cv2.COLOR_GRAY2BGR);
+        frame_stereo = cv2.cvtColor(np.uint8(frame_stereo), cv2.COLOR_GRAY2BGR);
+        frame_stereo_raw = cv2.cvtColor(np.uint8(frame_stereo_raw), cv2.COLOR_GRAY2BGR);
        
         # frame_stereo = self.crosshairs(frame_stereo)
 
