@@ -196,9 +196,9 @@ class KinectVision(ImageProcess):
 
         self.pub_depth_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo, self.output_frame_type))
         self.pub_depth_raw_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo_raw, self.output_frame_type))
-        self.pub_histogram.publish(histogram_max_value)
-        self.pub_histogram_L.publish(histogram_max_value_L)
-        self.pub_histogram_R.publish(histogram_max_value_R)
+        # self.pub_histogram.publish(histogram_max_value)
+        # self.pub_histogram_L.publish(histogram_max_value_L)
+        # self.pub_histogram_R.publish(histogram_max_value_R)
 
         # **************************  
         t = rospy.get_rostime().nsecs
