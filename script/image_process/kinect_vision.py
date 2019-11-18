@@ -136,62 +136,62 @@ class KinectVision(ImageProcess):
         frame_stereo = np.float32(data)
         frame_stereo_raw = np.uint8(frame_stereo)
         frame_stereo = frame_stereo_raw.copy()
-        print(frame_stereo.shape)
+        # print(frame_stereo.shape)
 
-        # -----------------------------------------------------------------------------------------------------------------------
-        # Center
-        histogram_size = [100, 10]
-        self.histogram_t = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size)))     
-        histogram_max_value = self.histogram_t
+        # # -----------------------------------------------------------------------------------------------------------------------
+        # # Center
+        # histogram_size = [100, 10]
+        # self.histogram_t = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size)))     
+        # histogram_max_value = self.histogram_t
 
-        # -----------------------------------------------------------------------------------------------------------------------
-        # Left
-        histogram_size_L = [100, 10]
-        self.histogram_t_L = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size_L, histogram_pos=(0, -100))))    
-        histogram_max_value_L = self.histogram_t_L
+        # # -----------------------------------------------------------------------------------------------------------------------
+        # # Left
+        # histogram_size_L = [100, 10]
+        # self.histogram_t_L = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size_L, histogram_pos=(0, -100))))    
+        # histogram_max_value_L = self.histogram_t_L
 
-        # -----------------------------------------------------------------------------------------------------------------------
-        # Right
-        histogram_size_R = [100, 10]
-        self.histogram_t_R = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size_R, histogram_pos=(0, 100))))
-        histogram_max_value_R = self.histogram_t_R
+        # # -----------------------------------------------------------------------------------------------------------------------
+        # # Right
+        # histogram_size_R = [100, 10]
+        # self.histogram_t_R = int(np.argmax(self.histogram_xy(frame_stereo, histogram_size_R, histogram_pos=(0, 100))))
+        # histogram_max_value_R = self.histogram_t_R
 
-        # -----------------------------------------------------------------------------------------------------------------------
-        frame_stereo = cv2.cvtColor(np.uint8(frame_stereo), cv2.COLOR_GRAY2BGR);
-        frame_stereo_raw = cv2.cvtColor(np.uint8(frame_stereo_raw), cv2.COLOR_GRAY2BGR);
+        # # -----------------------------------------------------------------------------------------------------------------------
+        # frame_stereo = cv2.cvtColor(np.uint8(frame_stereo), cv2.COLOR_GRAY2BGR);
+        # frame_stereo_raw = cv2.cvtColor(np.uint8(frame_stereo_raw), cv2.COLOR_GRAY2BGR);
        
-        frame_stereo = self.crosshairs(frame_stereo)
+        # frame_stereo = self.crosshairs(frame_stereo)
 
-        frame_stereo = self.draw_roi(frame_stereo, 
-                                     histogram_size, 
-                                     roi_color=(histogram_max_value, histogram_max_value, histogram_max_value))
+        # frame_stereo = self.draw_roi(frame_stereo, 
+        #                              histogram_size, 
+        #                              roi_color=(histogram_max_value, histogram_max_value, histogram_max_value))
 
-        frame_stereo = self.draw_roi(frame_stereo, 
-                                     histogram_size_L,
-                                     roi_pos =(0, -100), 
-                                     roi_color=(histogram_max_value_L, histogram_max_value_L, histogram_max_value_L))
+        # frame_stereo = self.draw_roi(frame_stereo, 
+        #                              histogram_size_L,
+        #                              roi_pos =(0, -100), 
+        #                              roi_color=(histogram_max_value_L, histogram_max_value_L, histogram_max_value_L))
 
-        frame_stereo = self.draw_roi(frame_stereo, 
-                                     histogram_size_R,
-                                     roi_pos =(0, 100), 
-                                     roi_color=(histogram_max_value_R, histogram_max_value_R, histogram_max_value_R))
+        # frame_stereo = self.draw_roi(frame_stereo, 
+        #                              histogram_size_R,
+        #                              roi_pos =(0, 100), 
+        #                              roi_color=(histogram_max_value_R, histogram_max_value_R, histogram_max_value_R))
 
 
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(frame_stereo, 
-                    str(histogram_max_value), 
-                    (frame_stereo.shape[0]//2+200, frame_stereo.shape[1]//2+130), 
-                    font, 3, (0, 0, 255), 2, cv2.LINE_AA)
+        # font = cv2.FONT_HERSHEY_SIMPLEX
+        # cv2.putText(frame_stereo, 
+        #             str(histogram_max_value), 
+        #             (frame_stereo.shape[0]//2+200, frame_stereo.shape[1]//2+130), 
+        #             font, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
-        cv2.putText(frame_stereo, 
-                    str(histogram_max_value_L), 
-                    (frame_stereo.shape[0]//2, frame_stereo.shape[1]//2+130), 
-                    font, 3, (0, 0, 255), 2, cv2.LINE_AA)
+        # cv2.putText(frame_stereo, 
+        #             str(histogram_max_value_L), 
+        #             (frame_stereo.shape[0]//2, frame_stereo.shape[1]//2+130), 
+        #             font, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
-        cv2.putText(frame_stereo, 
-                    str(histogram_max_value_R), 
-                    (frame_stereo.shape[0]//2-200, frame_stereo.shape[1]//2+130), 
-                    font, 3, (0, 0, 255), 2, cv2.LINE_AA)
+        # cv2.putText(frame_stereo, 
+        #             str(histogram_max_value_R), 
+        #             (frame_stereo.shape[0]//2-200, frame_stereo.shape[1]//2+130), 
+        #             font, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
 
         self.pub_depth_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo, self.output_frame_type))
