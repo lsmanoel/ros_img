@@ -193,6 +193,7 @@ class KinectVision(ImageProcess):
                     (frame_stereo.shape[0]//2-200, frame_stereo.shape[1]//2+130), 
                     font, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
+
         self.pub_depth_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo, self.output_frame_type))
         self.pub_depth_raw_output.publish(self.bridge.cv2_to_imgmsg(frame_stereo_raw, self.output_frame_type))
         self.pub_histogram.publish(histogram_max_value)
@@ -206,10 +207,10 @@ class KinectVision(ImageProcess):
             self.delta_t = delta_t
 
     def display_rgb(self, dev, data, timestamp):
-        frame_L = np.uint8(data)
-        frame_L = cv2.cvtColor(np.uint8(frame_L), cv2.COLOR_RGB2BGR)
-        frame_L = self.crosshairs(frame_L)
-        self.pub_L_output.publish(self.bridge.cv2_to_imgmsg(data, self.output_frame_type))
+        frame = np.uint8(data)
+        frame = cv2.cvtColor(np.uint8(frame), cv2.COLOR_RGB2BGR)
+        # frame = self.crosshairs(frame)
+        self.pub_bgr8_output.publish(self.bridge.cv2_to_imgmsg(frame, self.output_frame_type))
 
     def body(self, dev, ctx):
         freenect.set_tilt_degs(dev, 0)
@@ -220,16 +221,14 @@ class KinectVision(ImageProcess):
     # rostopics
     def output_frame_publisher_init(self, rostopic_name=None):
         if rostopic_name is None:
-            self.pub_L_output = rospy.Publisher(self.name + '_output_frame/L', Image, queue_size=10)
-            self.pub_R_output = rospy.Publisher(self.name + '_output_frame/R', Image, queue_size=10)
+            self.pub_bgr8_output = rospy.Publisher(self.name + '_output_frame/bgr8', Image, queue_size=10)
             self.pub_depth_output = rospy.Publisher(self.name + '_output_frame/depth', Image, queue_size=10)
             self.pub_depth_raw_output = rospy.Publisher(self.name + '_output_frame/depth_raw', Image, queue_size=10)
             self.pub_histogram = rospy.Publisher(self.name + '_central_depth_histogram', UInt8, queue_size=10)
             self.pub_histogram_L = rospy.Publisher(self.name + '_central_depth_histogram_L', UInt8, queue_size=10)
             self.pub_histogram_R = rospy.Publisher(self.name + '_central_depth_histogram_R', UInt8, queue_size=10)
         else:
-            self.pub_L_output = rospy.Publisher(rostopic_name + '/L', Image, queue_size=10)
-            self.pub_R_output = rospy.Publisher(rostopic_name + '/R', Image, queue_size=10)
+            self.pub_bgr8_output = rospy.Publisher(rostopic_name + '/bgr8', Image, queue_size=10)
             self.pub_depth_output = rospy.Publisher(rostopic_name + '/depth', Image, queue_size=10)
             self.pub_depth_raw_output = rospy.Publisher(rostopic_name + '/depth_raw', Image, queue_size=10)
             self.pub_histogram = rospy.Publisher(rostopic_name + '_central_depth_histogram', UInt8, queue_size=10)
