@@ -1,8 +1,6 @@
 #include "image_process/ImageProcess.h"
 
 // ======================================================================================================================
-#ifndef __CANNY_FILTER__
-
 int main(int argc, char** argv)
 {
 	std::vector<std::string> _argv;
