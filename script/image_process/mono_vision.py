@@ -40,7 +40,7 @@ class MonoVision(ImageProcess):
         while not rospy.is_shutdown():
             rate.sleep()
             self.process_bulk()
-            rospy.spinOnce()
+            # rospy.spinOnce()
 
     def main_process(self, frame):
         print("MonoVision.main_process()")

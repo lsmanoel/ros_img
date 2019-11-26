@@ -42,8 +42,104 @@ class ImageProcess(object):
         self.input_frame_flag = None
         self.output_frame = None
         self.pub_output = None
-        
 
+        self.histogram_t_buffer_size = 10
+        self._histogram_t = []
+        self.histogram_t = 0
+
+        self.histogram_t_buffer_size_L = 10
+        self._histogram_t_L = []
+        self.histogram_t_L = 0
+        
+        self.histogram_t_buffer_size_R = 10
+        self._histogram_t_R = []
+        self.histogram_t_R = 0
+
+    # ----------------------------------------------------------------------------------------
+    # Puts a centered crosshairs on the frame 
+    @staticmethod
+    def crosshairs(frame_input, color=(0,0,255)):
+        frame_output = frame_input
+        cv2.line(frame_output,
+                 (0, frame_output.shape[0]//2),
+                 (frame_output.shape[1], frame_output.shape[0]//2),
+                 color,
+                 1)
+
+        cv2.line(frame_output,
+                 (frame_output.shape[1]//2, 0),
+                 (frame_output.shape[1]//2, frame_output.shape[0]),
+                 color,
+                 1)
+        return frame_output
+
+    def draw_roi(self, frame, roi_size, roi_pos=(0, 0), filled_roi=True, roi_color=None):
+        roi = ((roi_pos[1]+frame.shape[1]//2-roi_size[1]//2, roi_pos[0]+frame.shape[0]//2-roi_size[0]//2),
+               (roi_pos[1]+frame.shape[1]//2+roi_size[1]//2, roi_pos[0]+frame.shape[0]//2+roi_size[0]//2))
+
+        if roi_color is None:
+            data_roi = frame[roi_pos[0]+frame.shape[0]//2-roi_size[0]//2:roi_pos[0]+frame.shape[0]//2+roi_size[0]//2,
+                             roi_pos[1]+frame.shape[1]//2-roi_size[1]//2:roi_pos[1]+frame.shape[1]//2+roi_size[1]//2]
+            data_roi_max = int(np.argmax(self.histogram(data_roi)))
+            roi_color = (data_roi_max, data_roi_max, data_roi_max)
+
+        if filled_roi is True:
+            cv2.rectangle(frame, 
+                          roi[0],
+                          roi[1], 
+                          roi_color,
+                          cv2.FILLED, 
+                          1)
+
+        cv2.rectangle(frame, 
+                      roi[0],
+                      roi[1], 
+                      (0, 0, 255), 
+                      1)
+
+        return frame
+
+    # ----------------------------------------------------------------------------------------
+    @staticmethod
+    def histogram(frame):
+        return np.histogram(frame.flatten(), 256, [0, 256])[0]
+
+    def histogram_xy(self, frame, histogram_size, histogram_pos=(0, 0)):
+        histogram = self.histogram(frame[histogram_pos[0]+frame.shape[0]//2-histogram_size[0]//2:
+                                         histogram_pos[0]+frame.shape[0]//2+histogram_size[0]//2,
+                                         histogram_pos[1]+frame.shape[1]//2-histogram_size[1]//2:
+                                         histogram_pos[1]+frame.shape[1]//2+histogram_size[1]//2])
+        return histogram
+
+    @property
+    def histogram_t(self):
+        return int(np.argmax(self.histogram(np.asarray(self._histogram_t))))
+
+    @histogram_t.setter
+    def histogram_t(self, value):
+        if len(self._histogram_t) > self.histogram_t_buffer_size:
+            self._histogram_t.pop(0)
+        self._histogram_t.append(value)
+
+    @property
+    def histogram_t_L(self):
+        return int(np.argmax(self.histogram(np.asarray(self._histogram_t_L))))
+
+    @histogram_t_L.setter
+    def histogram_t_L(self, value):
+        if len(self._histogram_t_L) > self.histogram_t_buffer_size_L:
+            self._histogram_t_L.pop(0)
+        self._histogram_t_L.append(value)
+
+    @property
+    def histogram_t_R(self):
+        return int(np.argmax(self.histogram(np.asarray(self._histogram_t_R))))
+
+    @histogram_t_R.setter
+    def histogram_t_R(self, value):
+        if len(self._histogram_t_R) > self.histogram_t_buffer_size_R:
+            self._histogram_t_R.pop(0)
+        self._histogram_t_R.append(value)
     # ----------------------------------------------------------------------------------------
     # rostopics
     def output_frame_publisher_init(self, rostopic_name=None):

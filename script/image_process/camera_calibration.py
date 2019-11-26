@@ -11,10 +11,10 @@ from ros_img.srv import return_data, return_dataResponse
 from sensor_msgs.msg import Image
 from std_msgs.msg import UInt8
 from cv_bridge import CvBridge, CvBridgeError
-from image_process import ImageProcess
+from stereo_vision import StereoVision
 
 
-class CameraCalibration(ImageProcess):
+class CameraCalibration(StereoVision):
     def __init__(self, 
                  name=None):
 
@@ -25,7 +25,6 @@ class CameraCalibration(ImageProcess):
 
         self.input_frame_type = 'bgr8' 
         self.output_frame_type = 'bgr8'
-
         self.main_state = 'start_state'
 
     # ----------------------------------------------------------------------------------------
@@ -104,7 +103,7 @@ class CameraCalibration(ImageProcess):
         return frame   	
 
     # ----------------------------------------------------------------------------------------
-    # Main Loop        
+    # Main Loop
     def main_process(self, frame):
         # **************************
         frame = self.main_machine_state(frame)
